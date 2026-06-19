@@ -18,8 +18,33 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background bg-grid bg-scanline flex items-center justify-center relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
+    <div className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid opacity-50" />
+      <svg className="absolute inset-0 w-full h-full opacity-40" viewBox="0 0 800 800" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="hsl(var(--glow-cyan))" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="hsl(var(--glow-cyan))" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <circle cx="400" cy="400" r="380" fill="url(#glow)" />
+        {[120, 200, 280, 360].map((r) => (
+          <circle key={r} cx="400" cy="400" r={r} fill="none" stroke="hsl(var(--glow-cyan))" strokeOpacity="0.15" strokeWidth="1">
+            <animate attributeName="r" from={r} to={r + 30} dur="4s" repeatCount="indefinite" />
+            <animate attributeName="stroke-opacity" from="0.3" to="0" dur="4s" repeatCount="indefinite" />
+          </circle>
+        ))}
+        {[[200, 200], [600, 250], [300, 600], [650, 580], [150, 450], [500, 150], [720, 400]].map(([x, y], i) => (
+          <g key={i}>
+            <line x1="400" y1="400" x2={x} y2={y} stroke="hsl(var(--glow-cyan))" strokeOpacity="0.2" strokeWidth="1" />
+            <circle cx={x} cy={y} r="3" fill="hsl(var(--glow-cyan))">
+              <animate attributeName="r" values="3;6;3" dur={`${2 + i * 0.3}s`} repeatCount="indefinite" />
+            </circle>
+          </g>
+        ))}
+        <circle cx="400" cy="400" r="5" fill="hsl(var(--primary))" />
+      </svg>
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/10" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -27,16 +52,15 @@ const Login = () => {
         transition={{ duration: 0.6 }}
         className="relative w-full max-w-md mx-4"
       >
-        <div className="p-8 rounded-lg border border-border/50 bg-card/80 backdrop-blur-xl">
-          {/* Logo */}
+        <div className="p-8 rounded-lg border border-border/50 bg-card/70 backdrop-blur-2xl shadow-2xl">
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center gap-2 mb-6">
               <Shield className="h-8 w-8 text-primary" />
               <span className="font-mono font-bold text-xl tracking-wider text-foreground">
-                RRC<span className="text-primary">Layer</span>
+                Red<span className="text-primary">Rainbow</span>
               </span>
             </Link>
-            <h1 className="text-2xl font-bold text-foreground mb-1">Authenticate</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-1">Biometric Authentication</h1>
             <p className="font-mono text-xs text-muted-foreground tracking-wider">SECURE ACCESS REQUIRED</p>
           </div>
 
@@ -49,14 +73,14 @@ const Login = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="operator@redrain.sec"
+                placeholder="operator@redrainbow.sec"
                 className="bg-background/50 border-border font-mono text-sm h-12 focus:border-primary/50 focus:ring-primary/20"
               />
             </div>
 
             <div>
               <label className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
-                Passphrase
+                Encryption Key
               </label>
               <div className="relative">
                 <Input
@@ -80,7 +104,7 @@ const Login = () => {
               type="submit"
               className="w-full font-mono bg-primary hover:bg-primary/90 text-primary-foreground h-12 glow-red"
             >
-              Initialize Session <ChevronRight className="ml-2 h-4 w-4" />
+              Terminal Authenticate <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </form>
 
