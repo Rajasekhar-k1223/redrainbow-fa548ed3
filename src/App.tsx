@@ -12,6 +12,10 @@ import Signals from "./pages/dashboard/Signals.tsx";
 import Vault from "./pages/dashboard/Vault.tsx";
 import Constellation from "./pages/dashboard/Constellation.tsx";
 import TerminalPage from "./pages/dashboard/Terminal.tsx";
+import Assets from "./pages/dashboard/Assets.tsx";
+import Vulnerabilities from "./pages/dashboard/Vulnerabilities.tsx";
+import Compliance from "./pages/dashboard/Compliance.tsx";
+import Telemetry from "./pages/dashboard/Telemetry.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -27,9 +31,13 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Overview />} />
-            <Route path="missions" element={<Missions />} />
+            <Route path="assets" element={<Assets />} />
+            <Route path="vulnerabilities" element={<Vulnerabilities />} />
+            <Route path="compliance" element={<Compliance />} />
+            <Route path="telemetry" element={<Telemetry />} />
             <Route path="signals" element={<Signals />} />
             <Route path="vault" element={<Vault />} />
+            <Route path="missions" element={<Missions />} />
             <Route path="constellation" element={<Constellation />} />
             <Route path="terminal" element={<TerminalPage />} />
           </Route>

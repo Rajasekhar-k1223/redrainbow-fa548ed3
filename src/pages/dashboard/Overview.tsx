@@ -1,114 +1,110 @@
 import { motion } from "framer-motion";
-import { Activity, Shield, Lock, Radio, Server, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
+import { Shield, Radio, AlertOctagon, TrendingUp, Activity } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.5 } }),
+  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.5 } }),
 };
 
-const stats = [
-  { label: "Active Missions", value: "7", change: "+2", icon: Shield, accent: "text-primary" },
-  { label: "Signals Today", value: "2.4M", change: "+12%", icon: Radio, accent: "text-secondary" },
-  { label: "Vault Items", value: "1,847", change: "+34", icon: Lock, accent: "text-glow-amber" },
-  { label: "Active Nodes", value: "12", change: "0", icon: Server, accent: "text-glow-green" },
+const metrics = [
+  { label: "Threat Intel", value: "2.4M", unit: "signals/day", icon: Radio, accent: "text-secondary" },
+  { label: "Global Posture Score", value: "A", unit: "98% verified", icon: Shield, accent: "text-glow-green" },
+  { label: "Open Vulnerabilities", value: "14", unit: "3 critical", icon: AlertOctagon, accent: "text-primary" },
+  { label: "Mean Time to Detect", value: "42s", unit: "−18% wk", icon: TrendingUp, accent: "text-glow-cyan" },
 ];
 
-const recentActivity = [
-  { time: "2m ago", event: "Kali node completed recon phase", type: "success" },
-  { time: "8m ago", event: "Evidence sealed: packet_capture_0412.pcap", type: "info" },
-  { time: "15m ago", event: "Alert: Anomalous egress on SECHub", type: "warning" },
-  { time: "22m ago", event: "Purple drill #47 initiated", type: "success" },
-  { time: "34m ago", event: "Vault integrity check passed", type: "info" },
-  { time: "1h ago", event: "Telemetry stream reconnected (node 7)", type: "info" },
+const signalMesh = [
+  { source: "CrowdStrike Falcon", events: 482_311, latency: "12ms", status: "Live" },
+  { source: "SentinelOne", events: 318_904, latency: "18ms", status: "Live" },
+  { source: "Splunk Enterprise", events: 1_204_882, latency: "44ms", status: "Live" },
+  { source: "Cloudflare Edge", events: 891_271, latency: "8ms", status: "Live" },
+  { source: "VirusTotal Intel", events: 14_872, latency: "210ms", status: "Live" },
+  { source: "Wazuh SIEM", events: 92_338, latency: "31ms", status: "Degraded" },
 ];
+
+const topExposures = [
+  { cve: "CVE-2024-3094", title: "xz-utils backdoor", cvss: "10.0", asset: "k8s-sechub-cluster" },
+  { cve: "CVE-2024-4577", title: "PHP CGI argument injection", cvss: "9.8", asset: "edge-gateway-07" },
+  { cve: "CVE-2024-21762", title: "FortiOS out-of-bounds write", cvss: "9.6", asset: "fw-perimeter-01" },
+  { cve: "CVE-2024-1086", title: "Linux netfilter UAF", cvss: "7.8", asset: "bastion-mgmt-02" },
+  { cve: "CVE-2024-27198", title: "TeamCity auth bypass", cvss: "9.8", asset: "ci.redrain.sec" },
+];
+
+const sparkline = [22, 38, 30, 55, 48, 70, 62, 88, 76, 95, 84, 100];
 
 const Overview = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Operations Overview</h1>
-        <p className="font-mono text-xs text-muted-foreground mt-1">Real-time command layer status</p>
+        <h1 className="text-2xl font-bold text-foreground">Executive Cockpit</h1>
+        <p className="font-mono text-xs text-muted-foreground mt-1">Continuous threat exposure management overview</p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((s, i) => (
-          <motion.div key={s.label} variants={fadeUp} custom={i} initial="hidden" animate="visible"
-            className="p-5 rounded-lg border border-border/50 bg-card/50">
+        {metrics.map((m, i) => (
+          <motion.div key={m.label} variants={fadeUp} custom={i} initial="hidden" animate="visible"
+            className="p-5 rounded-lg border border-border/50 bg-card/50 backdrop-blur-xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
             <div className="flex items-center justify-between mb-3">
-              <s.icon className={`h-5 w-5 ${s.accent}`} />
-              <span className="font-mono text-xs text-glow-green flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" />{s.change}
-              </span>
+              <m.icon className={`h-5 w-5 ${m.accent}`} />
+              <Activity className="h-3 w-3 text-muted-foreground" />
             </div>
-            <p className="text-2xl font-bold text-foreground">{s.value}</p>
-            <p className="font-mono text-xs text-muted-foreground mt-1">{s.label}</p>
+            <p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">{m.label}</p>
+            <p className="text-3xl font-black text-foreground mt-1">{m.value}</p>
+            <p className="font-mono text-xs text-muted-foreground mt-1">{m.unit}</p>
           </motion.div>
         ))}
       </div>
 
-      {/* Activity & Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Signal Mesh Widget */}
         <motion.div variants={fadeUp} custom={4} initial="hidden" animate="visible"
-          className="p-6 rounded-lg border border-border/50 bg-card/50">
-          <h2 className="text-lg font-bold text-foreground mb-4">Recent Activity</h2>
-          <div className="space-y-3">
-            {recentActivity.map((a, i) => (
-              <div key={i} className="flex items-start gap-3 py-2 border-b border-border/30 last:border-0">
-                {a.type === "warning" ? (
-                  <AlertTriangle className="h-4 w-4 text-glow-amber mt-0.5 flex-shrink-0" />
-                ) : (
-                  <CheckCircle className="h-4 w-4 text-glow-green mt-0.5 flex-shrink-0" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground truncate">{a.event}</p>
-                  <p className="font-mono text-xs text-muted-foreground">{a.time}</p>
+          className="lg:col-span-2 rounded-lg border border-border/50 bg-card/50 overflow-hidden">
+          <div className="p-4 border-b border-border/50 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Radio className="h-4 w-4 text-secondary" />
+              <h2 className="text-sm font-bold text-foreground">Signal Mesh — Ingestion Grid</h2>
+            </div>
+            <div className="flex items-end gap-0.5 h-6">
+              {sparkline.map((v, i) => (
+                <div key={i} className="w-1 bg-secondary/60 rounded-sm" style={{ height: `${v}%` }} />
+              ))}
+            </div>
+          </div>
+          <div className="divide-y divide-border/30">
+            {signalMesh.map((s) => (
+              <div key={s.source} className="px-4 py-3 hover:bg-muted/20 grid grid-cols-12 gap-2 items-center">
+                <div className="col-span-5 flex items-center gap-2">
+                  <span className={`w-1.5 h-1.5 rounded-full ${s.status === "Live" ? "bg-glow-green" : "bg-glow-amber"}`} style={{ boxShadow: `0 0 6px hsl(var(--glow-${s.status === "Live" ? "green" : "amber"}))` }} />
+                  <span className="font-mono text-sm text-foreground">{s.source}</span>
                 </div>
+                <span className="col-span-4 font-mono text-xs text-muted-foreground">{s.events.toLocaleString()} events</span>
+                <span className="col-span-2 font-mono text-xs text-secondary">{s.latency}</span>
+                <span className={`col-span-1 font-mono text-xs text-right ${s.status === "Live" ? "text-glow-green" : "text-glow-amber"}`}>{s.status}</span>
               </div>
             ))}
           </div>
         </motion.div>
 
-        {/* System Status */}
+        {/* Top Exposures */}
         <motion.div variants={fadeUp} custom={5} initial="hidden" animate="visible"
-          className="p-6 rounded-lg border border-border/50 bg-card/50">
-          <h2 className="text-lg font-bold text-foreground mb-4">System Status</h2>
-          <div className="space-y-4">
-            {[
-              { name: "Synaptic Hub", health: 98 },
-              { name: "Telemetry Pipeline", health: 100 },
-              { name: "Evidence Vault", health: 100 },
-              { name: "Signal Mesh", health: 95 },
-              { name: "Orchestration Engine", health: 99 },
-            ].map((sys) => (
-              <div key={sys.name} className="space-y-1">
+          className="rounded-lg border border-border/50 bg-card/50 overflow-hidden">
+          <div className="p-4 border-b border-border/50 flex items-center gap-2">
+            <AlertOctagon className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-bold text-foreground">Top Exposures</h2>
+          </div>
+          <div className="divide-y divide-border/30">
+            {topExposures.map((e) => (
+              <div key={e.cve} className="p-3 hover:bg-muted/20">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-foreground">{sys.name}</span>
-                  <span className="font-mono text-xs text-glow-green">{sys.health}%</span>
+                  <span className="font-mono text-xs text-primary">{e.cve}</span>
+                  <span className="font-mono text-xs text-glow-amber">CVSS {e.cvss}</span>
                 </div>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-1000"
-                    style={{
-                      width: `${sys.health}%`,
-                      background: sys.health === 100
-                        ? "hsl(var(--glow-green))"
-                        : sys.health > 96
-                        ? "hsl(var(--glow-cyan))"
-                        : "hsl(var(--glow-amber))",
-                    }}
-                  />
-                </div>
+                <p className="text-sm text-foreground mt-1 truncate">{e.title}</p>
+                <p className="font-mono text-xs text-muted-foreground mt-1 truncate">→ {e.asset}</p>
               </div>
             ))}
-          </div>
-
-          <div className="mt-6 p-3 rounded border border-border/50 bg-background/50 font-mono text-xs">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="status-dot" />
-              Pipeline Sync: <span className="text-glow-green">+2.4%</span>
-            </div>
           </div>
         </motion.div>
       </div>
