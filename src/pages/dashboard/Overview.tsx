@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Shield, Radio, AlertOctagon, TrendingUp, Activity } from "lucide-react";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -30,7 +31,11 @@ const topExposures = [
   { cve: "CVE-2024-27198", title: "TeamCity auth bypass", cvss: "9.8", asset: "ci.redrain.sec" },
 ];
 
-const sparkline = [22, 38, 30, 55, 48, 70, 62, 88, 76, 95, 84, 100];
+const threatTrend = Array.from({ length: 24 }, (_, i) => ({
+  t: `${String(i).padStart(2, "0")}:00`,
+  ingress: Math.round(40 + Math.sin(i / 3) * 25 + Math.random() * 18),
+  threats: Math.round(8 + Math.cos(i / 4) * 6 + Math.random() * 5),
+}));
 
 const Overview = () => {
   return (
