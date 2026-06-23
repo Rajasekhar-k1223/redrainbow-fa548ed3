@@ -30,30 +30,43 @@ const Vault = () => {
         </div>
       </div>
 
-      <div className="space-y-2">
-        {vaultItems.map((item, i) => (
-          <motion.div key={item.id} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
-            className="p-4 rounded-lg border border-border/50 bg-card/50 hover:border-primary/20 transition-colors">
-            <div className="flex items-center gap-4">
-              <item.icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs text-muted-foreground">{item.id}</span>
-                  <span className="text-sm font-medium text-foreground truncate">{item.name}</span>
-                </div>
-                <div className="flex items-center gap-4 mt-1 font-mono text-xs text-muted-foreground">
-                  <span>{item.type}</span>
-                  <span>{item.size}</span>
-                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {item.sealed}</span>
+      <div className="rounded-lg border border-border/50 bg-card/50 overflow-hidden">
+        <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 border-b border-border/50 font-mono text-xs text-muted-foreground uppercase tracking-wider">
+          <div className="col-span-4">Filename</div>
+          <div className="col-span-2">Type / Size</div>
+          <div className="col-span-3">Hash (SHA-256)</div>
+          <div className="col-span-1">Sealed</div>
+          <div className="col-span-2 text-right">Custody Status</div>
+        </div>
+        <div className="divide-y divide-border/30">
+          {vaultItems.map((item, i) => (
+            <motion.div key={item.id} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+              className="grid grid-cols-1 md:grid-cols-12 gap-4 px-4 py-3 hover:bg-muted/20 transition-colors items-center">
+              <div className="md:col-span-4 flex items-center gap-3 min-w-0">
+                <item.icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
+                  <p className="font-mono text-xs text-muted-foreground">{item.id}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Lock className="h-3 w-3 text-glow-green" />
-                <span className="font-mono text-xs text-muted-foreground">{item.hash}</span>
+              <div className="md:col-span-2 font-mono text-xs text-muted-foreground">
+                <span className="text-foreground">{item.type}</span> · {item.size}
               </div>
-            </div>
-          </motion.div>
-        ))}
+              <div className="md:col-span-3 flex items-center gap-2">
+                <Lock className="h-3 w-3 text-glow-green flex-shrink-0" />
+                <span className="font-mono text-xs text-secondary truncate">{item.hash}</span>
+              </div>
+              <div className="md:col-span-1 font-mono text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="h-3 w-3" /> {item.sealed}
+              </div>
+              <div className="md:col-span-2 md:text-right">
+                <span className={`inline-block px-2 py-0.5 rounded text-xs font-mono border ${custodyStyle[item.custody]}`}>
+                  {item.custody}
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );
