@@ -2,13 +2,19 @@ import { motion } from "framer-motion";
 import { Lock, FileText, Image, HardDrive, Clock, Shield } from "lucide-react";
 
 const vaultItems = [
-  { id: "EV-2847", name: "packet_capture_0412.pcap", type: "Binary", size: "24.7 MB", sealed: "2m ago", hash: "a3f7...c9d2", icon: HardDrive },
-  { id: "EV-2846", name: "lateral_movement_log.json", type: "Log", size: "1.2 MB", sealed: "45m ago", hash: "b8e1...4f7a", icon: FileText },
-  { id: "EV-2845", name: "c2_screenshot_proof.png", type: "Screenshot", size: "3.4 MB", sealed: "1h ago", hash: "d2c9...8b3e", icon: Image },
-  { id: "EV-2844", name: "memory_dump_qubes01.raw", type: "Binary", size: "512 MB", sealed: "2h ago", hash: "f1a3...7d6c", icon: HardDrive },
-  { id: "EV-2843", name: "incident_timeline.md", type: "Document", size: "28 KB", sealed: "4h ago", hash: "c7b2...1e9f", icon: FileText },
-  { id: "EV-2842", name: "malware_sample_x47.bin", type: "Binary", size: "847 KB", sealed: "6h ago", hash: "e4d8...3a5b", icon: HardDrive },
+  { id: "EV-2847", name: "packet_capture_0412.pcap", type: "Binary",     size: "24.7 MB", sealed: "2m ago",  hash: "a3f7...c9d2", custody: "Sealed",      icon: HardDrive },
+  { id: "EV-2846", name: "lateral_movement_log.json", type: "Log",        size: "1.2 MB",  sealed: "45m ago", hash: "b8e1...4f7a", custody: "Sealed",      icon: FileText },
+  { id: "EV-2845", name: "c2_screenshot_proof.png",   type: "Screenshot", size: "3.4 MB",  sealed: "1h ago",  hash: "d2c9...8b3e", custody: "In Review",   icon: Image },
+  { id: "EV-2844", name: "memory_dump_qubes01.raw",   type: "Binary",     size: "512 MB",  sealed: "2h ago",  hash: "f1a3...7d6c", custody: "Sealed",      icon: HardDrive },
+  { id: "EV-2843", name: "incident_timeline.md",      type: "Document",   size: "28 KB",   sealed: "4h ago",  hash: "c7b2...1e9f", custody: "Transferred", icon: FileText },
+  { id: "EV-2842", name: "malware_sample_x47.bin",    type: "Binary",     size: "847 KB",  sealed: "6h ago",  hash: "e4d8...3a5b", custody: "Sealed",      icon: HardDrive },
 ];
+
+const custodyStyle: Record<string, string> = {
+  Sealed: "text-glow-green border-glow-green/30 bg-glow-green/10",
+  "In Review": "text-glow-amber border-glow-amber/30 bg-glow-amber/10",
+  Transferred: "text-secondary border-secondary/30 bg-secondary/10",
+};
 
 const Vault = () => {
   return (
