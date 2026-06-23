@@ -31,6 +31,39 @@ const Ring = ({ value, color }: { value: number; color: string }) => {
 };
 
 const Compliance = () => {
+  const generateReport = () => {
+    const ts = new Date().toISOString();
+    const body = [
+      "REDRAINBOW — EXECUTIVE COMPLIANCE REPORT",
+      "=========================================",
+      `Generated:        ${ts}`,
+      `Operator:         ghost.7 (TS/SCI)`,
+      `Posture Score:    A (98%)`,
+      "",
+      "FRAMEWORK ALIGNMENT",
+      "-------------------",
+      ...frameworks.map((f) => `  ${f.name.padEnd(18)} ${f.score}%   ${f.passing}/${f.controls} controls passing`),
+      "",
+      "CONTROL COVERAGE (sample)",
+      "-------------------------",
+      ...controls.map((c) => `  [${c.status.toUpperCase().padEnd(6)}] ${c.ref.padEnd(12)} ${c.framework.padEnd(10)} ${c.desc}`),
+      "",
+      "VAULT INTEGRITY:  99.999% verified — chain-of-custody intact",
+      "NETWORK ZONES:    6/6 isolated",
+      "",
+      "— end of report —",
+    ].join("\n");
+    const blob = new Blob([body], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `RedRainbow-Executive-${ts.slice(0, 10)}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -38,10 +71,11 @@ const Compliance = () => {
           <h1 className="text-2xl font-bold text-foreground">Compliance & Reports</h1>
           <p className="font-mono text-xs text-muted-foreground mt-1">Continuous alignment across security frameworks</p>
         </div>
-        <Button className="font-mono bg-primary hover:bg-primary/90 text-primary-foreground glow-red text-sm">
+        <Button onClick={generateReport} className="font-mono bg-primary hover:bg-primary/90 text-primary-foreground glow-red text-sm">
           <Download className="h-4 w-4 mr-2" /> Generate Executive Report
         </Button>
       </div>
+
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {frameworks.map((f, i) => (
