@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { Download, FileBadge, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { jsPDF } from "jspdf";
+import { toast } from "sonner";
 
 const frameworks = [
   { name: "SOC 2 Type II", score: 94, color: "hsl(var(--glow-cyan))", controls: 132, passing: 124 },
