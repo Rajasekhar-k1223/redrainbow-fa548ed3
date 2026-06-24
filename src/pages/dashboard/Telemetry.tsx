@@ -3,16 +3,29 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Activity, Key, Plus, Copy, ShieldAlert, Cpu, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const stream = [
-  { time: "12:04:32", source: "CrowdStrike", type: "Network Anomaly", msg: "C2 Connection Blocked → 185.220.x.x", sev: "Critical", icon: ShieldAlert },
-  { time: "12:04:18", source: "SentinelOne", type: "Process Anomaly", msg: "Rapid Encryption Detected on host WIN-DC07", sev: "Critical", icon: Cpu },
-  { time: "12:03:55", source: "VirusTotal", type: "Malware", msg: "Hash match: Emotet 4a8f...c91b", sev: "High", icon: Bug },
-  { time: "12:03:41", source: "Defender", type: "Auth", msg: "Impossible travel: ops@redrain.sec", sev: "Medium", icon: ShieldAlert },
-  { time: "12:03:12", source: "Suricata", type: "IDS", msg: "ET POLICY DNS tunneling pattern", sev: "Medium", icon: Activity },
-  { time: "12:02:48", source: "Wazuh", type: "FIM", msg: "/etc/shadow modified on bastion-mgmt-02", sev: "High", icon: ShieldAlert },
-  { time: "12:02:21", source: "CrowdStrike", type: "EDR", msg: "Suspicious child process: powershell -enc", sev: "High", icon: Cpu },
-  { time: "12:01:59", source: "Cloudflare", type: "WAF", msg: "1,247 SQLi attempts blocked /api/login", sev: "Low", icon: Activity },
+type Event = { time: string; source: string; type: string; msg: string; sev: string; icon: typeof ShieldAlert; uid: number };
+
+const seed: Event[] = [
+  { time: "12:04:32", source: "CrowdStrike", type: "Network Anomaly", msg: "C2 Connection Blocked → 185.220.x.x", sev: "Critical", icon: ShieldAlert, uid: 1 },
+  { time: "12:04:18", source: "SentinelOne", type: "Process Anomaly", msg: "Rapid Encryption Detected on host WIN-DC07", sev: "Critical", icon: Cpu, uid: 2 },
+  { time: "12:03:55", source: "VirusTotal", type: "Malware", msg: "Hash match: Emotet 4a8f...c91b", sev: "High", icon: Bug, uid: 3 },
+  { time: "12:03:41", source: "Defender", type: "Auth", msg: "Impossible travel: ops@redrain.sec", sev: "Medium", icon: ShieldAlert, uid: 4 },
+  { time: "12:03:12", source: "Suricata", type: "IDS", msg: "ET POLICY DNS tunneling pattern", sev: "Medium", icon: Activity, uid: 5 },
+  { time: "12:02:48", source: "Wazuh", type: "FIM", msg: "/etc/shadow modified on bastion-mgmt-02", sev: "High", icon: ShieldAlert, uid: 6 },
+  { time: "12:02:21", source: "CrowdStrike", type: "EDR", msg: "Suspicious child process: powershell -enc", sev: "High", icon: Cpu, uid: 7 },
+  { time: "12:01:59", source: "Cloudflare", type: "WAF", msg: "1,247 SQLi attempts blocked /api/login", sev: "Low", icon: Activity, uid: 8 },
 ];
+
+const pool: Omit<Event, "time" | "uid">[] = [
+  { source: "CrowdStrike", type: "EDR", msg: "Lateral movement attempt blocked (SMB)", sev: "High", icon: ShieldAlert },
+  { source: "Suricata", type: "IDS", msg: "Cobalt Strike beacon signature 0x7f", sev: "Critical", icon: Activity },
+  { source: "Wazuh", type: "FIM", msg: "Unexpected binary in /usr/local/bin", sev: "Medium", icon: ShieldAlert },
+  { source: "VirusTotal", type: "Malware", msg: "Hash match: AgentTesla variant", sev: "High", icon: Bug },
+  { source: "Cloudflare", type: "WAF", msg: "Rate limit triggered on /api/auth", sev: "Low", icon: Activity },
+  { source: "Defender", type: "Auth", msg: "MFA fatigue pattern: 14 prompts in 90s", sev: "High", icon: ShieldAlert },
+  { source: "SentinelOne", type: "Process", msg: "LSASS memory access by unknown PID", sev: "Critical", icon: Cpu },
+];
+
 
 const sevColors: Record<string, string> = {
   Critical: "text-primary border-primary/40 bg-primary/10",
