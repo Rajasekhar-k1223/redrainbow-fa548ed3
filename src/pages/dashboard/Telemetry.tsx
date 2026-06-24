@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Activity, Key, Plus, Copy, ShieldAlert, Cpu, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
