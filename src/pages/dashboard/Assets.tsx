@@ -2,6 +2,21 @@ import { motion } from "framer-motion";
 import { Globe, Cloud, Server, Box, Search, Radar, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+
+const runScan = (label: string, finish: string) => {
+  const id = toast.loading(`${label} initiated…`, { description: "Streaming results from sensor mesh." });
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct += Math.random() * 22 + 8;
+    if (pct >= 100) {
+      clearInterval(iv);
+      toast.success(`${label} complete`, { id, description: finish });
+    } else {
+      toast.loading(`${label} — ${Math.min(99, Math.floor(pct))}%`, { id, description: "Streaming results from sensor mesh." });
+    }
+  }, 600);
+};
 
 const assets = [
   { id: "AST-001", identifier: "api.redrain.sec", type: "Domain", env: "Prod", crit: "Critical", status: "Healthy", icon: Globe },
@@ -41,13 +56,13 @@ const Assets = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Filter assets..." className="pl-9 bg-card/50 border-border/50 font-mono text-sm" />
         </div>
-        <Button size="sm" variant="outline" className="font-mono text-xs border-secondary/40 text-secondary hover:bg-secondary/10 hover:text-secondary">
+        <Button onClick={() => runScan("Subdomain Enumeration", "47 hosts discovered, 3 new subdomains flagged.")} size="sm" variant="outline" className="font-mono text-xs border-secondary/40 text-secondary hover:bg-secondary/10 hover:text-secondary">
           <Radar className="h-3 w-3 mr-2" /> Run Subdomain Enum
         </Button>
-        <Button size="sm" variant="outline" className="font-mono text-xs border-glow-amber/40 text-glow-amber hover:bg-glow-amber/10">
+        <Button onClick={() => runScan("Open Port Scan", "1,284 ports scanned — 2 unexpected services on bastion-mgmt-02.")} size="sm" variant="outline" className="font-mono text-xs border-glow-amber/40 text-glow-amber hover:bg-glow-amber/10">
           <Search className="h-3 w-3 mr-2" /> Run Open Port Scan
         </Button>
-        <Button size="sm" variant="outline" className="font-mono text-xs border-primary/40 text-primary hover:bg-primary/10 hover:text-primary">
+        <Button onClick={() => runScan("Cloud Posture Scan", "AWS + GCP posture checked — 4 drift findings queued for triage.")} size="sm" variant="outline" className="font-mono text-xs border-primary/40 text-primary hover:bg-primary/10 hover:text-primary">
           <ShieldCheck className="h-3 w-3 mr-2" /> Run Cloud Posture Scan
         </Button>
       </div>

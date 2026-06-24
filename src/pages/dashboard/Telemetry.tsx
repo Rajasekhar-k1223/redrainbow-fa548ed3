@@ -1,17 +1,31 @@
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Activity, Key, Plus, Copy, ShieldAlert, Cpu, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const stream = [
-  { time: "12:04:32", source: "CrowdStrike", type: "Network Anomaly", msg: "C2 Connection Blocked → 185.220.x.x", sev: "Critical", icon: ShieldAlert },
-  { time: "12:04:18", source: "SentinelOne", type: "Process Anomaly", msg: "Rapid Encryption Detected on host WIN-DC07", sev: "Critical", icon: Cpu },
-  { time: "12:03:55", source: "VirusTotal", type: "Malware", msg: "Hash match: Emotet 4a8f...c91b", sev: "High", icon: Bug },
-  { time: "12:03:41", source: "Defender", type: "Auth", msg: "Impossible travel: ops@redrain.sec", sev: "Medium", icon: ShieldAlert },
-  { time: "12:03:12", source: "Suricata", type: "IDS", msg: "ET POLICY DNS tunneling pattern", sev: "Medium", icon: Activity },
-  { time: "12:02:48", source: "Wazuh", type: "FIM", msg: "/etc/shadow modified on bastion-mgmt-02", sev: "High", icon: ShieldAlert },
-  { time: "12:02:21", source: "CrowdStrike", type: "EDR", msg: "Suspicious child process: powershell -enc", sev: "High", icon: Cpu },
-  { time: "12:01:59", source: "Cloudflare", type: "WAF", msg: "1,247 SQLi attempts blocked /api/login", sev: "Low", icon: Activity },
+type Event = { time: string; source: string; type: string; msg: string; sev: string; icon: typeof ShieldAlert; uid: number };
+
+const seed: Event[] = [
+  { time: "12:04:32", source: "CrowdStrike", type: "Network Anomaly", msg: "C2 Connection Blocked → 185.220.x.x", sev: "Critical", icon: ShieldAlert, uid: 1 },
+  { time: "12:04:18", source: "SentinelOne", type: "Process Anomaly", msg: "Rapid Encryption Detected on host WIN-DC07", sev: "Critical", icon: Cpu, uid: 2 },
+  { time: "12:03:55", source: "VirusTotal", type: "Malware", msg: "Hash match: Emotet 4a8f...c91b", sev: "High", icon: Bug, uid: 3 },
+  { time: "12:03:41", source: "Defender", type: "Auth", msg: "Impossible travel: ops@redrain.sec", sev: "Medium", icon: ShieldAlert, uid: 4 },
+  { time: "12:03:12", source: "Suricata", type: "IDS", msg: "ET POLICY DNS tunneling pattern", sev: "Medium", icon: Activity, uid: 5 },
+  { time: "12:02:48", source: "Wazuh", type: "FIM", msg: "/etc/shadow modified on bastion-mgmt-02", sev: "High", icon: ShieldAlert, uid: 6 },
+  { time: "12:02:21", source: "CrowdStrike", type: "EDR", msg: "Suspicious child process: powershell -enc", sev: "High", icon: Cpu, uid: 7 },
+  { time: "12:01:59", source: "Cloudflare", type: "WAF", msg: "1,247 SQLi attempts blocked /api/login", sev: "Low", icon: Activity, uid: 8 },
 ];
+
+const pool: Omit<Event, "time" | "uid">[] = [
+  { source: "CrowdStrike", type: "EDR", msg: "Lateral movement attempt blocked (SMB)", sev: "High", icon: ShieldAlert },
+  { source: "Suricata", type: "IDS", msg: "Cobalt Strike beacon signature 0x7f", sev: "Critical", icon: Activity },
+  { source: "Wazuh", type: "FIM", msg: "Unexpected binary in /usr/local/bin", sev: "Medium", icon: ShieldAlert },
+  { source: "VirusTotal", type: "Malware", msg: "Hash match: AgentTesla variant", sev: "High", icon: Bug },
+  { source: "Cloudflare", type: "WAF", msg: "Rate limit triggered on /api/auth", sev: "Low", icon: Activity },
+  { source: "Defender", type: "Auth", msg: "MFA fatigue pattern: 14 prompts in 90s", sev: "High", icon: ShieldAlert },
+  { source: "SentinelOne", type: "Process", msg: "LSASS memory access by unknown PID", sev: "Critical", icon: Cpu },
+];
+
 
 const sevColors: Record<string, string> = {
   Critical: "text-primary border-primary/40 bg-primary/10",
@@ -28,6 +42,19 @@ const apiKeys = [
 ];
 
 const Telemetry = () => {
+  const [stream, setStream] = useState<Event[]>(seed);
+
+  useEffect(() => {
+    let next = seed.length + 1;
+    const iv = setInterval(() => {
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      const now = new Date();
+      const time = now.toTimeString().slice(0, 8);
+      setStream((prev) => [{ ...pick, time, uid: next++ }, ...prev].slice(0, 40));
+    }, 2500);
+    return () => clearInterval(iv);
+  }, []);
+
   return (
     <div className="space-y-6">
       <div>
@@ -43,23 +70,30 @@ const Telemetry = () => {
             <span className="ml-auto font-mono text-xs text-glow-cyan">2,418 events/sec</span>
           </div>
           <div className="divide-y divide-border/30 max-h-[600px] overflow-auto">
-            {stream.map((s, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                className="p-3 hover:bg-muted/20 flex items-start gap-3">
-                <s.icon className="h-4 w-4 text-secondary mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-xs text-muted-foreground">{s.time}</span>
-                    <span className="font-mono text-xs text-secondary">{s.source}</span>
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono border ${sevColors[s.sev]}`}>{s.sev}</span>
-                    <span className="font-mono text-xs text-muted-foreground">{s.type}</span>
+            <AnimatePresence initial={false}>
+              {stream.map((s) => (
+                <motion.div key={s.uid}
+                  initial={{ opacity: 0, x: -16, backgroundColor: "hsl(var(--glow-cyan) / 0.08)" }}
+                  animate={{ opacity: 1, x: 0, backgroundColor: "hsl(var(--glow-cyan) / 0)" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="p-3 hover:bg-muted/20 flex items-start gap-3">
+                  <s.icon className="h-4 w-4 text-secondary mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-xs text-muted-foreground">{s.time}</span>
+                      <span className="font-mono text-xs text-secondary">{s.source}</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono border ${sevColors[s.sev]}`}>{s.sev}</span>
+                      <span className="font-mono text-xs text-muted-foreground">{s.type}</span>
+                    </div>
+                    <p className="text-sm text-foreground mt-1">{s.msg}</p>
                   </div>
-                  <p className="text-sm text-foreground mt-1">{s.msg}</p>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         </div>
+
 
         <div className="space-y-4">
           <div className="rounded-lg border border-border/50 bg-card/50 p-5">
