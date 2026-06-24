@@ -35,35 +35,68 @@ const Ring = ({ value, color }: { value: number; color: string }) => {
 const Compliance = () => {
   const generateReport = () => {
     const ts = new Date().toISOString();
-    const body = [
-      "REDRAINBOW — EXECUTIVE COMPLIANCE REPORT",
-      "=========================================",
-      `Generated:        ${ts}`,
-      `Operator:         ghost.7 (TS/SCI)`,
-      `Posture Score:    A (98%)`,
-      "",
-      "FRAMEWORK ALIGNMENT",
-      "-------------------",
-      ...frameworks.map((f) => `  ${f.name.padEnd(18)} ${f.score}%   ${f.passing}/${f.controls} controls passing`),
-      "",
-      "CONTROL COVERAGE (sample)",
-      "-------------------------",
-      ...controls.map((c) => `  [${c.status.toUpperCase().padEnd(6)}] ${c.ref.padEnd(12)} ${c.framework.padEnd(10)} ${c.desc}`),
-      "",
-      "VAULT INTEGRITY:  99.999% verified — chain-of-custody intact",
-      "NETWORK ZONES:    6/6 isolated",
-      "",
-      "— end of report —",
-    ].join("\n");
-    const blob = new Blob([body], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `RedRainbow-Executive-${ts.slice(0, 10)}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const doc = new jsPDF({ unit: "pt", format: "letter" });
+    const W = doc.internal.pageSize.getWidth();
+    // Header band
+    doc.setFillColor(10, 10, 12);
+    doc.rect(0, 0, W, 90, "F");
+    doc.setTextColor(255, 51, 51);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("REDRAINBOW", 40, 45);
+    doc.setTextColor(0, 220, 220);
+    doc.setFontSize(10);
+    doc.text("Continuous Threat Exposure Management — Executive Report", 40, 65);
+    doc.setTextColor(160, 160, 170);
+    doc.setFontSize(8);
+    doc.text(`Generated ${ts}`, 40, 80);
+
+    doc.setTextColor(20, 20, 20);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("Posture Summary", 40, 130);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text("Overall Score:  A  (98%)", 40, 150);
+    doc.text("Operator:       ghost.7 (TS/SCI)", 40, 166);
+    doc.text("Vault Integrity: 99.999% — chain-of-custody intact", 40, 182);
+    doc.text("Network Zones:   6 / 6 isolated", 40, 198);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("Framework Alignment", 40, 235);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    let y = 255;
+    frameworks.forEach((f) => {
+      doc.text(`${f.name}`, 50, y);
+      doc.text(`${f.score}%`, 250, y);
+      doc.text(`${f.passing} / ${f.controls} controls passing`, 320, y);
+      y += 18;
+    });
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("Control Coverage", 40, y + 20);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    y += 40;
+    controls.forEach((c) => {
+      doc.text(`[${c.status.toUpperCase()}]`, 50, y);
+      doc.text(c.ref, 110, y);
+      doc.text(c.framework, 180, y);
+      doc.text(c.desc, 260, y);
+      y += 16;
+    });
+
+    doc.setDrawColor(220, 220, 220);
+    doc.line(40, y + 14, W - 40, y + 14);
+    doc.setFontSize(8);
+    doc.setTextColor(140, 140, 150);
+    doc.text("CONFIDENTIAL — RedRainbow Command Layer • Auto-generated executive summary", 40, y + 30);
+
+    doc.save(`RedRainbow-Executive-${ts.slice(0, 10)}.pdf`);
+    toast.success("Executive report generated", { description: "PDF saved to downloads." });
   };
 
   return (
