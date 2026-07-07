@@ -1,7 +1,9 @@
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Lock, FileText, Image, HardDrive, Clock, Shield } from "lucide-react";
+import { subscribeVault, type VaultItem } from "@/lib/vaultStore";
 
-const vaultItems = [
+const baseItems = [
   { id: "EV-2847", name: "packet_capture_0412.pcap", type: "Binary",     size: "24.7 MB", sealed: "2m ago",  hash: "a3f7...c9d2", custody: "Sealed",      icon: HardDrive },
   { id: "EV-2846", name: "lateral_movement_log.json", type: "Log",        size: "1.2 MB",  sealed: "45m ago", hash: "b8e1...4f7a", custody: "Sealed",      icon: FileText },
   { id: "EV-2845", name: "c2_screenshot_proof.png",   type: "Screenshot", size: "3.4 MB",  sealed: "1h ago",  hash: "d2c9...8b3e", custody: "In Review",   icon: Image },
@@ -16,7 +18,15 @@ const custodyStyle: Record<string, string> = {
   Transferred: "text-secondary border-secondary/30 bg-secondary/10",
 };
 
+const iconFor = (type: string) => (type === "Log" || type === "Document" ? FileText : type === "Screenshot" ? Image : HardDrive);
+
 const Vault = () => {
+  const [live, setLive] = useState<VaultItem[]>([]);
+  useEffect(() => { const unsub = subscribeVault(setLive); return () => { unsub(); }; }, []);
+  const vaultItems = [
+    ...live.map((i) => ({ ...i, icon: iconFor(i.type) })),
+    ...baseItems,
+  ];
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
