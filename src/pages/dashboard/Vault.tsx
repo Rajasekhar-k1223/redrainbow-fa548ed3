@@ -22,7 +22,7 @@ const iconFor = (type: string) => (type === "Log" || type === "Document" ? FileT
 
 const Vault = () => {
   const [live, setLive] = useState<VaultItem[]>([]);
-  useEffect(() => subscribeVault(setLive), []);
+  useEffect(() => { const unsub = subscribeVault(setLive); return () => { unsub(); }; }, []);
   const vaultItems = [
     ...live.map((i) => ({ ...i, icon: iconFor(i.type) })),
     ...baseItems,
