@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, Radio, AlertOctagon, TrendingUp, Activity } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import { useBusEvent } from "@/lib/eventBus";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
