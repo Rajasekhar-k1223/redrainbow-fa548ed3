@@ -3,8 +3,19 @@ import { Globe, Cloud, Server, Box, Search, Radar, ShieldCheck } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { bus, busIds, type AssetScanStartedPayload } from "@/lib/eventBus";
 
-const runScan = (label: string, finish: string) => {
+type ScanKind = AssetScanStartedPayload["kind"];
+
+const runScan = (
+  label: string,
+  finish: string,
+  kind: ScanKind,
+  target: string,
+  onComplete: () => void,
+) => {
+  const scanId = busIds.scan();
+  bus.emit("asset.scan.started", { scanId, kind, target, startedAt: Date.now() });
   const id = toast.loading(`${label} initiated…`, { description: "Streaming results from sensor mesh." });
   let pct = 0;
   const iv = setInterval(() => {
@@ -12,6 +23,14 @@ const runScan = (label: string, finish: string) => {
     if (pct >= 100) {
       clearInterval(iv);
       toast.success(`${label} complete`, { id, description: finish });
+      onComplete();
+      bus.emit("asset.scan.completed", {
+        scanId, kind, target,
+        hostsFound: 5 + Math.floor(Math.random() * 40),
+        newAssets: Math.floor(Math.random() * 4),
+        finding: finish,
+        finishedAt: Date.now(),
+      });
     } else {
       toast.loading(`${label} — ${Math.min(99, Math.floor(pct))}%`, { id, description: "Streaming results from sensor mesh." });
     }
