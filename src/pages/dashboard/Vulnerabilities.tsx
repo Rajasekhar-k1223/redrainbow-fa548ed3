@@ -86,7 +86,12 @@ const Vulnerabilities = () => {
                   <span>{f.age} ago</span>
                 </div>
               </div>
-              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground font-mono text-xs">
+              <Button
+                onClick={() => bus.emit("vulnerability.detected", {
+                  id: f.id, cve: f.title.match(/CVE-\d{4}-\d+/)?.[0], title: f.title,
+                  asset: f.asset, severity: f.sev as Severity, cvss: f.cvss,
+                })}
+                size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground font-mono text-xs">
                 Triage <ArrowUpRight className="h-3 w-3 ml-1" />
               </Button>
             </motion.div>
