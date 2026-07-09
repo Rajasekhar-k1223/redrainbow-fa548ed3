@@ -9,12 +9,6 @@ const fadeUp = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.5 } }),
 };
 
-const metrics = [
-  { label: "Threat Intel", value: "2.4M", unit: "signals/day", icon: Radio, accent: "text-secondary" },
-  { label: "Global Posture Score", value: "A", unit: "98% verified", icon: Shield, accent: "text-glow-green" },
-  { label: "Open Vulnerabilities", value: "14", unit: "3 critical", icon: AlertOctagon, accent: "text-primary" },
-  { label: "Mean Time to Detect", value: "42s", unit: "−18% wk", icon: TrendingUp, accent: "text-glow-cyan" },
-];
 
 const signalMesh = [
   { source: "CrowdStrike Falcon", events: 482_311, latency: "12ms", status: "Live" },
