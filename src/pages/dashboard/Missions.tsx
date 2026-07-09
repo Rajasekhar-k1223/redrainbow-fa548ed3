@@ -65,8 +65,9 @@ const Missions = () => {
             key={m.id}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.08 }}
-            className="p-5 rounded-lg border border-border/50 bg-card/50 hover:border-primary/20 transition-colors"
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ delay: Math.min(i * 0.06, 0.3) }}
+            className={`p-5 rounded-lg border bg-card/50 hover:border-primary/20 transition-colors ${m.status === "Suggested" ? "border-glow-amber/40" : "border-border/50"}`}
           >
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1 min-w-0">
@@ -85,7 +86,7 @@ const Missions = () => {
                   <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {m.started}</span>
                 </div>
               </div>
-              <div className="w-full sm:w-40">
+              <div className="w-full sm:w-40 space-y-2">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-mono text-xs text-muted-foreground">Progress</span>
                   <span className="font-mono text-xs text-foreground">{m.progress}%</span>
@@ -96,13 +97,21 @@ const Missions = () => {
                     style={{ width: `${m.progress}%` }}
                   />
                 </div>
+                {m.status === "Suggested" && (
+                  <Button onClick={() => launch(m)} size="sm" className="w-full h-7 font-mono text-xs bg-glow-amber/10 hover:bg-glow-amber/20 text-glow-amber border border-glow-amber/40">
+                    <Play className="h-3 w-3 mr-1" /> Launch
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>
         ))}
+        </AnimatePresence>
       </div>
     </div>
   );
 };
+
+export default Missions;
 
 export default Missions;
