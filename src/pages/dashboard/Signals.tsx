@@ -23,6 +23,29 @@ const severityColors: Record<string, string> = {
 };
 
 const Signals = () => {
+  const [signals, setSignals] = useState<Signal[]>(seedSignals);
+
+  const pushSignal = (partial: Omit<Signal, "id" | "time">, cause?: Parameters<typeof bus.emit>[0]) => {
+    const sig: Signal = { id: busIds.signal(), time: "just now", ...partial };
+    setSignals((prev) => [sig, ...prev].slice(0, 40));
+    bus.emit("signal.created", {
+      id: sig.id, source: sig.source, type: sig.type,
+      severity: (sig.severity === "Info" ? "Low" : sig.severity) as Severity,
+      count: sig.count, cause,
+    });
+  };
+
+  useBusEvent("asset.scan.completed", (p) => {
+    pushSignal({ source: `Scan/${p.kind}`, type: `Scan finished on ${p.target}`, severity: "Medium", count: p.hostsFound }, "asset.scan.completed");
+  });
+  useBusEvent("port.discovered", (p) => {
+    if (!p.unexpected) return;
+    pushSignal({ source: p.host, type: `Unexpected ${p.service} (:${p.port})`, severity: "High", count: 1 }, "port.discovered");
+  });
+  useBusEvent("vulnerability.detected", (p) => {
+    pushSignal({ source: p.asset, type: p.cve ? `${p.cve} — ${p.title}` : p.title, severity: p.severity, count: 1 }, "vulnerability.detected");
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -33,9 +56,9 @@ const Signals = () => {
       {/* Signal stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Signals", value: "2.4M", icon: Radio },
+          { label: "Total Signals", value: signals.length >= 1000 ? "2.4M" : String(signals.length), icon: Radio },
           { label: "Active Sources", value: "12", icon: Wifi },
-          { label: "Alerts", value: "3", icon: AlertTriangle },
+          { label: "Alerts", value: String(signals.filter((s) => s.severity === "Critical" || s.severity === "High").length), icon: AlertTriangle },
           { label: "Throughput", value: "+12%", icon: TrendingUp },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
@@ -54,20 +77,26 @@ const Signals = () => {
           <span className="font-mono text-xs text-muted-foreground">LIVE FEED</span>
         </div>
         <div className="divide-y divide-border/30">
-          {signals.map((s, i) => (
-            <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.08 }}
-              className="p-4 hover:bg-muted/20 transition-colors">
-              <div className="flex items-center gap-4">
-                <span className="font-mono text-xs text-secondary w-24 flex-shrink-0">{s.source}</span>
-                <span className="text-sm text-foreground flex-1">{s.type}</span>
-                <span className={`px-2 py-0.5 rounded text-xs font-mono border ${severityColors[s.severity]}`}>
-                  {s.severity}
-                </span>
-                <span className="font-mono text-xs text-muted-foreground w-16 text-right">{s.count}</span>
-                <span className="font-mono text-xs text-muted-foreground w-16 text-right">{s.time}</span>
-              </div>
-            </motion.div>
-          ))}
+          <AnimatePresence initial={false}>
+            {signals.map((s) => (
+              <motion.div key={s.id}
+                initial={{ opacity: 0, x: -12, backgroundColor: "hsl(var(--glow-cyan) / 0.08)" }}
+                animate={{ opacity: 1, x: 0, backgroundColor: "hsl(var(--glow-cyan) / 0)" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.45 }}
+                className="p-4 hover:bg-muted/20 transition-colors">
+                <div className="flex items-center gap-4">
+                  <span className="font-mono text-xs text-secondary w-24 flex-shrink-0">{s.source}</span>
+                  <span className="text-sm text-foreground flex-1">{s.type}</span>
+                  <span className={`px-2 py-0.5 rounded text-xs font-mono border ${severityColors[s.severity]}`}>
+                    {s.severity}
+                  </span>
+                  <span className="font-mono text-xs text-muted-foreground w-16 text-right">{s.count}</span>
+                  <span className="font-mono text-xs text-muted-foreground w-16 text-right">{s.time}</span>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
     </div>
