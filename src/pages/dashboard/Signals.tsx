@@ -1,13 +1,17 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Radio, Wifi, AlertTriangle, TrendingUp } from "lucide-react";
+import { bus, busIds, useBusEvent, type Severity } from "@/lib/eventBus";
 
-const signals = [
-  { source: "Kali-01", type: "Port Scan", severity: "Medium", time: "2m ago", count: 342 },
-  { source: "SECHub-03", type: "SQL Injection Attempt", severity: "High", time: "5m ago", count: 12 },
-  { source: "SecOnion-02", type: "DNS Anomaly", severity: "Low", time: "8m ago", count: 1847 },
-  { source: "Qubes-01", type: "Process Isolation Breach", severity: "Critical", time: "12m ago", count: 1 },
-  { source: "REMnux-01", type: "Malware Callback", severity: "High", time: "18m ago", count: 7 },
-  { source: "CAINE-01", type: "Disk Image Analysis", severity: "Info", time: "25m ago", count: 3 },
+type Signal = { id: string; source: string; type: string; severity: Severity | "Info"; time: string; count: number };
+
+const seedSignals: Signal[] = [
+  { id: "SIG-10001", source: "Kali-01",     type: "Port Scan",                 severity: "Medium",   time: "2m ago",  count: 342 },
+  { id: "SIG-10002", source: "SECHub-03",   type: "SQL Injection Attempt",     severity: "High",     time: "5m ago",  count: 12 },
+  { id: "SIG-10003", source: "SecOnion-02", type: "DNS Anomaly",               severity: "Low",      time: "8m ago",  count: 1847 },
+  { id: "SIG-10004", source: "Qubes-01",    type: "Process Isolation Breach",  severity: "Critical", time: "12m ago", count: 1 },
+  { id: "SIG-10005", source: "REMnux-01",   type: "Malware Callback",          severity: "High",     time: "18m ago", count: 7 },
+  { id: "SIG-10006", source: "CAINE-01",    type: "Disk Image Analysis",       severity: "Info",     time: "25m ago", count: 3 },
 ];
 
 const severityColors: Record<string, string> = {
