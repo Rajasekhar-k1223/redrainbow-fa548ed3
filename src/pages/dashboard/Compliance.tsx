@@ -35,6 +35,26 @@ const Ring = ({ value, color }: { value: number; color: string }) => {
 };
 
 const Compliance = () => {
+  const [riskDelta, setRiskDelta] = useState(0);
+  const [lastReason, setLastReason] = useState<string>("baseline");
+
+  useBusEvent("vulnerability.detected", (p) => {
+    const weight = p.severity === "Critical" ? -3 : p.severity === "High" ? -1.5 : p.severity === "Medium" ? -0.5 : -0.1;
+    setRiskDelta((d) => Math.round((d + weight) * 10) / 10);
+    setLastReason(`${p.severity} ${p.cve ?? p.title}`);
+    bus.emit("compliance.updated", { deltaScore: weight, reason: `vuln:${p.cve ?? p.title}` });
+  });
+  useBusEvent("vault.saved", (p) => {
+    setRiskDelta((d) => Math.round((d + 0.3) * 10) / 10);
+    setLastReason(`evidence sealed ${p.id}`);
+    bus.emit("compliance.updated", { deltaScore: 0.3, reason: `vault:${p.id}` });
+  });
+  useBusEvent("mission.completed", () => {
+    setRiskDelta((d) => Math.round((d + 0.8) * 10) / 10);
+    setLastReason("mission completed");
+    bus.emit("compliance.updated", { deltaScore: 0.8, reason: "mission.completed" });
+  });
+
   const generateReport = () => {
     const ts = new Date().toISOString();
     const doc = new jsPDF({ unit: "pt", format: "letter" });
