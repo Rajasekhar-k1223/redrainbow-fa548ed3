@@ -128,10 +128,15 @@ const Compliance = () => {
           <h1 className="text-2xl font-bold text-foreground">Compliance & Reports</h1>
           <p className="font-mono text-xs text-muted-foreground mt-1">Continuous alignment across security frameworks</p>
         </div>
-        <Button onClick={generateReport} className="font-mono bg-primary hover:bg-primary/90 text-primary-foreground glow-red text-sm">
-          <Download className="h-4 w-4 mr-2" /> Generate Executive Report
-        </Button>
-      </div>
+        <div className="flex items-center gap-2">
+          <div className={`px-3 py-1.5 rounded border font-mono text-xs flex items-center gap-2 ${riskDelta < 0 ? "border-primary/40 bg-primary/10 text-primary" : "border-glow-green/40 bg-glow-green/10 text-glow-green"}`}>
+            {riskDelta < 0 ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+            Risk Δ {riskDelta > 0 ? "+" : ""}{riskDelta.toFixed(1)} · {lastReason}
+          </div>
+          <Button onClick={generateReport} className="font-mono bg-primary hover:bg-primary/90 text-primary-foreground glow-red text-sm">
+            <Download className="h-4 w-4 mr-2" /> Generate Executive Report
+          </Button>
+        </div>
 
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
