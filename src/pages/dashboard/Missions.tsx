@@ -1,8 +1,12 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Layers, Play, Pause, CheckCircle, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { bus, busIds, useBusEvent } from "@/lib/eventBus";
 
-const missions = [
+type Mission = { id: string; name: string; type: "Red" | "Blue" | "Purple"; status: "Active" | "Paused" | "Completed" | "Suggested"; progress: number; team: string; started: string };
+
+const seedMissions: Mission[] = [
   { id: "M-047", name: "Purple Drill Alpha", type: "Purple", status: "Active", progress: 72, team: "Red + Blue", started: "2h ago" },
   { id: "M-046", name: "Perimeter Recon", type: "Red", status: "Active", progress: 45, team: "Red Team", started: "4h ago" },
   { id: "M-045", name: "IR Response Drill", type: "Blue", status: "Completed", progress: 100, team: "Blue Team", started: "1d ago" },
