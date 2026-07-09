@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { AlertOctagon, Bug, ShieldAlert, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { bus, type Severity } from "@/lib/eventBus";
 
 const findings = [
   { id: "VLN-9821", title: "CVE-2024-4577 detected (PHP CGI argument injection)", asset: "edge-gateway-07", sev: "Critical", age: "2h", cvss: "9.8" },
