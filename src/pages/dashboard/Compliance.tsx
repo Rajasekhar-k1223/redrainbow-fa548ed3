@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Download, FileBadge, CheckCircle2, AlertCircle } from "lucide-react";
+import { Download, FileBadge, CheckCircle2, AlertCircle, TrendingDown, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
+import { bus, useBusEvent } from "@/lib/eventBus";
 
 const frameworks = [
   { name: "SOC 2 Type II", score: 94, color: "hsl(var(--glow-cyan))", controls: 132, passing: 124 },
@@ -33,6 +35,26 @@ const Ring = ({ value, color }: { value: number; color: string }) => {
 };
 
 const Compliance = () => {
+  const [riskDelta, setRiskDelta] = useState(0);
+  const [lastReason, setLastReason] = useState<string>("baseline");
+
+  useBusEvent("vulnerability.detected", (p) => {
+    const weight = p.severity === "Critical" ? -3 : p.severity === "High" ? -1.5 : p.severity === "Medium" ? -0.5 : -0.1;
+    setRiskDelta((d) => Math.round((d + weight) * 10) / 10);
+    setLastReason(`${p.severity} ${p.cve ?? p.title}`);
+    bus.emit("compliance.updated", { deltaScore: weight, reason: `vuln:${p.cve ?? p.title}` });
+  });
+  useBusEvent("vault.saved", (p) => {
+    setRiskDelta((d) => Math.round((d + 0.3) * 10) / 10);
+    setLastReason(`evidence sealed ${p.id}`);
+    bus.emit("compliance.updated", { deltaScore: 0.3, reason: `vault:${p.id}` });
+  });
+  useBusEvent("mission.completed", () => {
+    setRiskDelta((d) => Math.round((d + 0.8) * 10) / 10);
+    setLastReason("mission completed");
+    bus.emit("compliance.updated", { deltaScore: 0.8, reason: "mission.completed" });
+  });
+
   const generateReport = () => {
     const ts = new Date().toISOString();
     const doc = new jsPDF({ unit: "pt", format: "letter" });
@@ -106,10 +128,18 @@ const Compliance = () => {
           <h1 className="text-2xl font-bold text-foreground">Compliance & Reports</h1>
           <p className="font-mono text-xs text-muted-foreground mt-1">Continuous alignment across security frameworks</p>
         </div>
-        <Button onClick={generateReport} className="font-mono bg-primary hover:bg-primary/90 text-primary-foreground glow-red text-sm">
-          <Download className="h-4 w-4 mr-2" /> Generate Executive Report
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className={`px-3 py-1.5 rounded border font-mono text-xs flex items-center gap-2 ${riskDelta < 0 ? "border-primary/40 bg-primary/10 text-primary" : "border-glow-green/40 bg-glow-green/10 text-glow-green"}`}>
+            {riskDelta < 0 ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+            Risk Δ {riskDelta > 0 ? "+" : ""}{riskDelta.toFixed(1)} · {lastReason}
+          </div>
+          <Button onClick={generateReport} className="font-mono bg-primary hover:bg-primary/90 text-primary-foreground glow-red text-sm">
+            <Download className="h-4 w-4 mr-2" /> Generate Executive Report
+          </Button>
+        </div>
       </div>
+
+
 
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

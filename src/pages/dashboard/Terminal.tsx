@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { publishToVault } from "@/lib/vaultStore";
+import { bus, busIds } from "@/lib/eventBus";
 
 type Log = { type: "system" | "input" | "output" | "ok" | "warn" | "err"; text: string };
 
@@ -39,6 +40,12 @@ const commands: Record<string, (args: string[]) => Log[]> = {
   ],
   scan: (args) => {
     const target = args[0] || "10.0.1.0/24";
+    const scanId = busIds.scan();
+    bus.emit("asset.scan.started", { scanId, kind: "cidr", target, startedAt: Date.now() });
+    setTimeout(() => {
+      bus.emit("port.discovered", { host: "10.0.1.21", port: 23, service: "telnet", unexpected: true });
+      bus.emit("asset.scan.completed", { scanId, kind: "cidr", target, hostsFound: 5, newAssets: 1, finding: "1 unexpected telnet exposure", finishedAt: Date.now() });
+    }, 400);
     return [
       { type: "output", text: `→ Sweeping ${target}...` },
       { type: "output", text: "  10.0.1.4   open: 22,80,443      [bastion-mgmt-02]" },
@@ -51,6 +58,10 @@ const commands: Record<string, (args: string[]) => Log[]> = {
   },
   vuln: (args) => {
     const host = args[0] || "edge-gateway-07";
+    setTimeout(() => {
+      bus.emit("vulnerability.detected", { id: busIds.vuln(), cve: "CVE-2024-4577", title: "PHP CGI argument injection", asset: host, severity: "Critical", cvss: "9.8" });
+      bus.emit("vulnerability.detected", { id: busIds.vuln(), cve: "CVE-2024-1086", title: "Linux netfilter UAF", asset: host, severity: "High", cvss: "7.8" });
+    }, 300);
     return [
       { type: "output", text: `→ Querying CVE database for ${host}...` },
       { type: "err",    text: "  CRIT  CVE-2024-4577  PHP CGI argument injection      CVSS 9.8" },
@@ -72,7 +83,9 @@ const commands: Record<string, (args: string[]) => Log[]> = {
   mission: (args) => {
     if (args[0] !== "start" || !args[1]) return [{ type: "err", text: "usage: mission start <name>" }];
     const name = args.slice(1).join(" ");
-    const id = `M-0${48 + Math.floor(Math.random() * 9)}`;
+    const id = busIds.mission();
+    bus.emit("mission.created", { id, name, type: "Purple", team: "Red + Blue" });
+    setTimeout(() => bus.emit("mission.started", { id, startedAt: Date.now() }), 200);
     return [
       { type: "output", text: `→ Allocating cyber-range for "${name}"...` },
       { type: "output", text: "  • Provisioning isolated zone…  OK" },

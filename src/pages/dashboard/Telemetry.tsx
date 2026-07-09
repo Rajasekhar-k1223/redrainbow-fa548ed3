@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Activity, Key, Plus, Copy, ShieldAlert, Cpu, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { bus, useBusEvent } from "@/lib/eventBus";
 
 type Event = { time: string; source: string; type: string; msg: string; sev: string; icon: typeof ShieldAlert; uid: number };
 
@@ -44,16 +45,26 @@ const apiKeys = [
 const Telemetry = () => {
   const [stream, setStream] = useState<Event[]>(seed);
 
+  const prepend = (ev: Omit<Event, "uid" | "time">) => {
+    const time = new Date().toTimeString().slice(0, 8);
+    setStream((prev) => [{ ...ev, time, uid: Date.now() + Math.random() }, ...prev].slice(0, 40));
+    bus.emit("telemetry.received", { source: ev.source, type: ev.type, message: ev.msg, severity: ev.sev as never, at: Date.now() });
+  };
+
   useEffect(() => {
-    let next = seed.length + 1;
     const iv = setInterval(() => {
       const pick = pool[Math.floor(Math.random() * pool.length)];
-      const now = new Date();
-      const time = now.toTimeString().slice(0, 8);
-      setStream((prev) => [{ ...pick, time, uid: next++ }, ...prev].slice(0, 40));
+      prepend(pick);
     }, 2500);
     return () => clearInterval(iv);
   }, []);
+
+  useBusEvent("signal.created", (p) => {
+    prepend({ source: p.source, type: p.type, msg: `Signal ${p.id} raised (${p.severity})`, sev: p.severity, icon: ShieldAlert });
+  });
+  useBusEvent("asset.scan.completed", (p) => {
+    prepend({ source: `Scanner/${p.kind}`, type: "Scan", msg: `${p.target} — ${p.finding}`, sev: "Low", icon: Activity });
+  });
 
   return (
     <div className="space-y-6">

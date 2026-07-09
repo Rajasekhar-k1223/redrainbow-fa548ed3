@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { AlertOctagon, Bug, ShieldAlert, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { bus, type Severity } from "@/lib/eventBus";
 
 const findings = [
   { id: "VLN-9821", title: "CVE-2024-4577 detected (PHP CGI argument injection)", asset: "edge-gateway-07", sev: "Critical", age: "2h", cvss: "9.8" },
@@ -85,7 +86,12 @@ const Vulnerabilities = () => {
                   <span>{f.age} ago</span>
                 </div>
               </div>
-              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground font-mono text-xs">
+              <Button
+                onClick={() => bus.emit("vulnerability.detected", {
+                  id: f.id, cve: f.title.match(/CVE-\d{4}-\d+/)?.[0], title: f.title,
+                  asset: f.asset, severity: f.sev as Severity, cvss: f.cvss,
+                })}
+                size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground font-mono text-xs">
                 Triage <ArrowUpRight className="h-3 w-3 ml-1" />
               </Button>
             </motion.div>

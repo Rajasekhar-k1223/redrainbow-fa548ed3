@@ -1,8 +1,12 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Layers, Play, Pause, CheckCircle, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { bus, busIds, useBusEvent } from "@/lib/eventBus";
 
-const missions = [
+type Mission = { id: string; name: string; type: "Red" | "Blue" | "Purple"; status: "Active" | "Paused" | "Completed" | "Suggested"; progress: number; team: string; started: string };
+
+const seedMissions: Mission[] = [
   { id: "M-047", name: "Purple Drill Alpha", type: "Purple", status: "Active", progress: 72, team: "Red + Blue", started: "2h ago" },
   { id: "M-046", name: "Perimeter Recon", type: "Red", status: "Active", progress: 45, team: "Red Team", started: "4h ago" },
   { id: "M-045", name: "IR Response Drill", type: "Blue", status: "Completed", progress: 100, team: "Blue Team", started: "1d ago" },
@@ -20,9 +24,28 @@ const statusIcons: Record<string, React.ReactNode> = {
   Active: <Play className="h-3 w-3" />,
   Paused: <Pause className="h-3 w-3" />,
   Completed: <CheckCircle className="h-3 w-3" />,
+  Suggested: <Layers className="h-3 w-3" />,
 };
 
 const Missions = () => {
+  const [missions, setMissions] = useState<Mission[]>(seedMissions);
+
+  useBusEvent("signal.created", (p) => {
+    if (p.severity !== "Critical" && p.severity !== "High") return;
+    const id = busIds.mission();
+    const mission: Mission = {
+      id, name: `Triage — ${p.type}`.slice(0, 60), type: "Blue",
+      status: "Suggested", progress: 0, team: "Blue Team", started: "auto-suggested",
+    };
+    setMissions((prev) => [mission, ...prev].slice(0, 12));
+    bus.emit("mission.created", { id, name: mission.name, type: "Blue", team: "Blue Team", origin: p.id });
+  });
+
+  const launch = (m: Mission) => {
+    setMissions((prev) => prev.map((x) => x.id === m.id ? { ...x, status: "Active", progress: 5, started: "just now" } : x));
+    bus.emit("mission.started", { id: m.id, startedAt: Date.now() });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -36,13 +59,15 @@ const Missions = () => {
       </div>
 
       <div className="space-y-3">
+        <AnimatePresence initial={false}>
         {missions.map((m, i) => (
           <motion.div
             key={m.id}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.08 }}
-            className="p-5 rounded-lg border border-border/50 bg-card/50 hover:border-primary/20 transition-colors"
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ delay: Math.min(i * 0.06, 0.3) }}
+            className={`p-5 rounded-lg border bg-card/50 hover:border-primary/20 transition-colors ${m.status === "Suggested" ? "border-glow-amber/40" : "border-border/50"}`}
           >
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1 min-w-0">
@@ -61,7 +86,7 @@ const Missions = () => {
                   <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {m.started}</span>
                 </div>
               </div>
-              <div className="w-full sm:w-40">
+              <div className="w-full sm:w-40 space-y-2">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-mono text-xs text-muted-foreground">Progress</span>
                   <span className="font-mono text-xs text-foreground">{m.progress}%</span>
@@ -72,10 +97,16 @@ const Missions = () => {
                     style={{ width: `${m.progress}%` }}
                   />
                 </div>
+                {m.status === "Suggested" && (
+                  <Button onClick={() => launch(m)} size="sm" className="w-full h-7 font-mono text-xs bg-glow-amber/10 hover:bg-glow-amber/20 text-glow-amber border border-glow-amber/40">
+                    <Play className="h-3 w-3 mr-1" /> Launch
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>
         ))}
+        </AnimatePresence>
       </div>
     </div>
   );

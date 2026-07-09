@@ -1,18 +1,14 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, Radio, AlertOctagon, TrendingUp, Activity } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import { useBusEvent } from "@/lib/eventBus";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.5 } }),
 };
 
-const metrics = [
-  { label: "Threat Intel", value: "2.4M", unit: "signals/day", icon: Radio, accent: "text-secondary" },
-  { label: "Global Posture Score", value: "A", unit: "98% verified", icon: Shield, accent: "text-glow-green" },
-  { label: "Open Vulnerabilities", value: "14", unit: "3 critical", icon: AlertOctagon, accent: "text-primary" },
-  { label: "Mean Time to Detect", value: "42s", unit: "−18% wk", icon: TrendingUp, accent: "text-glow-cyan" },
-];
 
 const signalMesh = [
   { source: "CrowdStrike Falcon", events: 482_311, latency: "12ms", status: "Live" },
@@ -38,16 +34,29 @@ const threatTrend = Array.from({ length: 24 }, (_, i) => ({
 }));
 
 const Overview = () => {
+  const [live, setLive] = useState({ signals: 0, vulns: 0, missions: 0, vault: 0 });
+  useBusEvent("signal.created", () => setLive((s) => ({ ...s, signals: s.signals + 1 })));
+  useBusEvent("vulnerability.detected", () => setLive((s) => ({ ...s, vulns: s.vulns + 1 })));
+  useBusEvent("mission.created", () => setLive((s) => ({ ...s, missions: s.missions + 1 })));
+  useBusEvent("vault.saved", () => setLive((s) => ({ ...s, vault: s.vault + 1 })));
+
+  const liveMetrics = [
+    { label: "Threat Intel", value: `2.4M${live.signals ? ` +${live.signals}` : ""}`, unit: `signals/day${live.signals ? ` · ${live.signals} live` : ""}`, icon: Radio, accent: "text-secondary" },
+    { label: "Global Posture Score", value: "A", unit: "98% verified", icon: Shield, accent: "text-glow-green" },
+    { label: "Open Vulnerabilities", value: String(14 + live.vulns), unit: `3 critical${live.vulns ? ` · +${live.vulns} new` : ""}`, icon: AlertOctagon, accent: "text-primary" },
+    { label: "Mean Time to Detect", value: "42s", unit: `−18% wk${live.missions ? ` · ${live.missions} auto-missions` : ""}`, icon: TrendingUp, accent: "text-glow-cyan" },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Executive Cockpit</h1>
-        <p className="font-mono text-xs text-muted-foreground mt-1">Continuous threat exposure management overview</p>
+        <p className="font-mono text-xs text-muted-foreground mt-1">Continuous threat exposure management overview{live.vault ? ` · ${live.vault} evidence sealed this session` : ""}</p>
       </div>
 
       {/* Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((m, i) => (
+        {liveMetrics.map((m, i) => (
           <motion.div key={m.label} variants={fadeUp} custom={i} initial="hidden" animate="visible"
             className="p-5 rounded-lg border border-border/50 bg-card/50 backdrop-blur-xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
