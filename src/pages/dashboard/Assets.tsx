@@ -75,13 +75,21 @@ const Assets = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Filter assets..." className="pl-9 bg-card/50 border-border/50 font-mono text-sm" />
         </div>
-        <Button onClick={() => runScan("Subdomain Enumeration", "47 hosts discovered, 3 new subdomains flagged.")} size="sm" variant="outline" className="font-mono text-xs border-secondary/40 text-secondary hover:bg-secondary/10 hover:text-secondary">
+        <Button onClick={() => runScan("Subdomain Enumeration", "47 hosts discovered, 3 new subdomains flagged.", "subdomain", "*.redrain.sec", () => {
+          bus.emit("asset.discovered", { assetId: `AST-${Math.floor(Math.random()*900)+100}`, identifier: `edge-${Math.floor(Math.random()*99)}.redrain.sec`, type: "Domain", env: "Prod", criticality: "Medium" });
+        })} size="sm" variant="outline" className="font-mono text-xs border-secondary/40 text-secondary hover:bg-secondary/10 hover:text-secondary">
           <Radar className="h-3 w-3 mr-2" /> Run Subdomain Enum
         </Button>
-        <Button onClick={() => runScan("Open Port Scan", "1,284 ports scanned — 2 unexpected services on bastion-mgmt-02.")} size="sm" variant="outline" className="font-mono text-xs border-glow-amber/40 text-glow-amber hover:bg-glow-amber/10">
+        <Button onClick={() => runScan("Open Port Scan", "1,284 ports scanned — 2 unexpected services on bastion-mgmt-02.", "port", "10.0.1.0/24", () => {
+          bus.emit("port.discovered", { host: "bastion-mgmt-02", port: 23, service: "telnet", unexpected: true });
+          bus.emit("vulnerability.detected", { id: busIds.vuln(), title: "Unexpected telnet exposure", asset: "bastion-mgmt-02", severity: "High", cvss: "8.1" });
+        })} size="sm" variant="outline" className="font-mono text-xs border-glow-amber/40 text-glow-amber hover:bg-glow-amber/10">
           <Search className="h-3 w-3 mr-2" /> Run Open Port Scan
         </Button>
-        <Button onClick={() => runScan("Cloud Posture Scan", "AWS + GCP posture checked — 4 drift findings queued for triage.")} size="sm" variant="outline" className="font-mono text-xs border-primary/40 text-primary hover:bg-primary/10 hover:text-primary">
+        <Button onClick={() => runScan("Cloud Posture Scan", "AWS + GCP posture checked — 4 drift findings queued for triage.", "cloud-posture", "aws+gcp", () => {
+          bus.emit("asset.updated", { assetId: "AST-002", status: "Drift" });
+          bus.emit("vulnerability.detected", { id: busIds.vuln(), cve: "CIS-1.20", title: "S3 bucket public ACL drift", asset: "aws-prod-account-1138", severity: "Critical", cvss: "9.1" });
+        })} size="sm" variant="outline" className="font-mono text-xs border-primary/40 text-primary hover:bg-primary/10 hover:text-primary">
           <ShieldCheck className="h-3 w-3 mr-2" /> Run Cloud Posture Scan
         </Button>
       </div>
