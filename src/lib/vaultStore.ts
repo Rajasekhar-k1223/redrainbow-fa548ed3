@@ -1,5 +1,9 @@
 // Lightweight in-memory pub/sub for evidence sealed by the Command Terminal.
 // Vault page subscribes and prepends new items; Terminal calls publishToVault().
+// Also forwards to the global eventBus as `vault.saved` so the whole cockpit
+// (Dashboard KPIs, Compliance risk) can react.
+
+import { bus } from "./eventBus";
 
 export type VaultItem = {
   id: string;
@@ -29,6 +33,15 @@ export const publishToVault = (partial: Omit<VaultItem, "id" | "sealed" | "hash"
   };
   published = [item, ...published];
   listeners.forEach((l) => l(published));
+  // Broadcast on the shared bus for cross-module reactivity.
+  bus.emit("vault.saved", {
+    id: item.id,
+    name: item.name,
+    type: item.type,
+    size: item.size,
+    hash: item.hash,
+    source: item.source,
+  });
   return item;
 };
 
