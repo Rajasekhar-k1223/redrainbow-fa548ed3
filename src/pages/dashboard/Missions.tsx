@@ -24,9 +24,28 @@ const statusIcons: Record<string, React.ReactNode> = {
   Active: <Play className="h-3 w-3" />,
   Paused: <Pause className="h-3 w-3" />,
   Completed: <CheckCircle className="h-3 w-3" />,
+  Suggested: <Layers className="h-3 w-3" />,
 };
 
 const Missions = () => {
+  const [missions, setMissions] = useState<Mission[]>(seedMissions);
+
+  useBusEvent("signal.created", (p) => {
+    if (p.severity !== "Critical" && p.severity !== "High") return;
+    const id = busIds.mission();
+    const mission: Mission = {
+      id, name: `Triage — ${p.type}`.slice(0, 60), type: "Blue",
+      status: "Suggested", progress: 0, team: "Blue Team", started: "auto-suggested",
+    };
+    setMissions((prev) => [mission, ...prev].slice(0, 12));
+    bus.emit("mission.created", { id, name: mission.name, type: "Blue", team: "Blue Team", origin: p.id });
+  });
+
+  const launch = (m: Mission) => {
+    setMissions((prev) => prev.map((x) => x.id === m.id ? { ...x, status: "Active", progress: 5, started: "just now" } : x));
+    bus.emit("mission.started", { id: m.id, startedAt: Date.now() });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -40,6 +59,7 @@ const Missions = () => {
       </div>
 
       <div className="space-y-3">
+        <AnimatePresence initial={false}>
         {missions.map((m, i) => (
           <motion.div
             key={m.id}
