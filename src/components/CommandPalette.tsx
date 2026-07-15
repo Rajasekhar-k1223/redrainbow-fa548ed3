@@ -69,7 +69,7 @@ export function CommandPalette() {
   const quickSeal = () => {
     publishToVault({
       name: `snapshot-${Date.now()}.evd`, type: "Snapshot", size: "24 KB",
-      hash: `0x${Math.random().toString(16).slice(2, 10)}`, source: "Command Palette",
+      source: "Command Palette",
     });
     setOpen(false);
     toast.success("Sealed snapshot to Evidence Vault");
