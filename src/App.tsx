@@ -49,6 +49,7 @@ const App = () => (
             <Route path="vault" element={<Vault />} />
             <Route path="missions" element={<Missions />} />
             <Route path="constellation" element={<Constellation />} />
+            <Route path="copilot" element={<Copilot />} />
             <Route path="terminal" element={<TerminalPage />} />
             <Route path="reports" element={<Reports />} />
             <Route path="integrations" element={<Integrations />} />
