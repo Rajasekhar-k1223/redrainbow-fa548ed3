@@ -1,4 +1,4 @@
-import { Shield, Activity, Lock, Layers, Terminal, Network, Radio, LogOut, Boxes, Bug, FileBadge, AlertOctagon, Fingerprint, FileText, Plug, Settings as SettingsIcon } from "lucide-react";
+import { Shield, Activity, Lock, Layers, Terminal, Network, Radio, LogOut, Boxes, Bug, FileBadge, AlertOctagon, Fingerprint, FileText, Plug, Settings as SettingsIcon, Sparkles } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import {
@@ -39,6 +39,7 @@ const sections = [
     items: [
       { title: "Mission Orchestration", url: "/dashboard/missions", icon: Layers },
       { title: "Multi-OS Constellation", url: "/dashboard/constellation", icon: Network },
+      { title: "Copilot", url: "/dashboard/copilot", icon: Sparkles },
       { title: "Live Terminal", url: "/dashboard/terminal", icon: Terminal },
     ],
   },

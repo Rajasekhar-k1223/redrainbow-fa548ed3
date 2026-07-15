@@ -21,6 +21,8 @@ import IOCs from "./pages/dashboard/IOCs.tsx";
 import Reports from "./pages/dashboard/Reports.tsx";
 import SettingsPage from "./pages/dashboard/Settings.tsx";
 import Integrations from "./pages/dashboard/Integrations.tsx";
+import Copilot from "./pages/dashboard/Copilot.tsx";
+import { CommandPalette } from "./components/CommandPalette.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <CommandPalette />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
@@ -46,6 +49,7 @@ const App = () => (
             <Route path="vault" element={<Vault />} />
             <Route path="missions" element={<Missions />} />
             <Route path="constellation" element={<Constellation />} />
+            <Route path="copilot" element={<Copilot />} />
             <Route path="terminal" element={<TerminalPage />} />
             <Route path="reports" element={<Reports />} />
             <Route path="integrations" element={<Integrations />} />
