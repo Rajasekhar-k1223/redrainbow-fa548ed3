@@ -117,25 +117,27 @@ const SettingsPage = () => {
                 <p className="text-sm text-foreground font-medium">{op.handle}</p>
                 <p className="font-mono text-[10px] text-muted-foreground">{op.id}</p>
               </div>
-              <div className="md:col-span-3 font-mono text-xs text-muted-foreground truncate">{op.email}</div>
+            <div className="md:col-span-3 font-mono text-xs text-muted-foreground truncate">{op.email}</div>
               <div className="md:col-span-2">
-                <select value={op.role} onChange={(e) => { updateOperator(op.id, { role: e.target.value as Role }); toast.success(`${op.handle} → ${e.target.value}`); }}
-                  className={`h-7 px-2 rounded border font-mono text-xs ${roleStyle[op.role]}`}>
+                <select disabled={!canManage} value={op.role} onChange={(e) => { updateOperator(op.id, { role: e.target.value as Role }); toast.success(`${op.handle} → ${e.target.value}`); }}
+                  className={`h-7 px-2 rounded border font-mono text-xs disabled:opacity-60 disabled:cursor-not-allowed ${roleStyle[op.role]}`}>
                   {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
               <div className="md:col-span-2 flex items-center gap-2">
-                <button onClick={() => updateOperator(op.id, { mfa: !op.mfa })}
-                  className={`flex items-center gap-1 font-mono text-xs ${op.mfa ? "text-glow-green" : "text-muted-foreground"}`}>
+                <button disabled={!canManage} onClick={() => updateOperator(op.id, { mfa: !op.mfa })}
+                  className={`flex items-center gap-1 font-mono text-xs disabled:opacity-60 disabled:cursor-not-allowed ${op.mfa ? "text-glow-green" : "text-muted-foreground"}`}>
                   <KeyRound className="h-3 w-3" /> MFA {op.mfa ? "ON" : "OFF"}
                 </button>
               </div>
               <div className="md:col-span-1 font-mono text-[10px] text-muted-foreground">{op.lastActive}</div>
               <div className="md:col-span-1 text-right">
-                <button onClick={() => { removeOperator(op.id); toast.success(`${op.handle} removed`); }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary">
-                  <Trash2 className="h-3 w-3" />
-                </button>
+                {canManage && (
+                  <button onClick={() => { removeOperator(op.id); toast.success(`${op.handle} removed`); }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary">
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                )}
               </div>
             </motion.div>
           ))}
