@@ -17,7 +17,6 @@ const statusNodes = [
 const DashboardLayout = () => {
   return (
     <SidebarProvider>
-    <SidebarProvider>
       <PreferencesProvider />
       <ShortcutsDialog />
       <div className="min-h-screen flex w-full bg-background bg-grid data-[density=compact]:text-[13px]" data-density-scope>
