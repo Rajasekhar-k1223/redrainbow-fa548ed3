@@ -88,19 +88,26 @@ const SettingsPage = () => {
           <span className="ml-auto font-mono text-xs text-foreground">{operators.length}</span>
         </div>
 
-        <div className="p-4 border-b border-border/50 flex flex-wrap gap-2 items-center bg-muted/10">
-          <Input value={draft.handle} onChange={(e) => setDraft({ ...draft, handle: e.target.value })}
-            placeholder="handle (e.g. phantom.5)" className="font-mono text-xs h-9 max-w-[180px]" />
-          <Input value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })}
-            placeholder="email@redrainbow.io" className="font-mono text-xs h-9 flex-1 min-w-[200px]" />
-          <select value={draft.role} onChange={(e) => setDraft({ ...draft, role: e.target.value as Role })}
-            className="h-9 px-2 rounded bg-background border border-border/50 font-mono text-xs text-foreground">
-            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <Button onClick={invite} className="font-mono text-xs h-9 bg-primary hover:bg-primary/90 text-primary-foreground">
-            <Plus className="h-3 w-3 mr-1" /> Invite
-          </Button>
-        </div>
+        {canManage && (
+          <div className="p-4 border-b border-border/50 flex flex-wrap gap-2 items-center bg-muted/10">
+            <Input value={draft.handle} onChange={(e) => setDraft({ ...draft, handle: e.target.value })}
+              placeholder="handle (e.g. phantom.5)" className="font-mono text-xs h-9 max-w-[180px]" />
+            <Input value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+              placeholder="email@redrainbow.io" className="font-mono text-xs h-9 flex-1 min-w-[200px]" />
+            <select value={draft.role} onChange={(e) => setDraft({ ...draft, role: e.target.value as Role })}
+              className="h-9 px-2 rounded bg-background border border-border/50 font-mono text-xs text-foreground">
+              {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+            <Button onClick={invite} className="font-mono text-xs h-9 bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Plus className="h-3 w-3 mr-1" /> Invite
+            </Button>
+          </div>
+        )}
+        {!canManage && (
+          <div className="p-3 border-b border-border/50 bg-muted/10 font-mono text-[11px] text-muted-foreground">
+            Read-only: your role ({currentOp?.role ?? "—"}) cannot manage operators.
+          </div>
+        )}
 
         <div className="divide-y divide-border/30">
           {operators.map((op, i) => (
