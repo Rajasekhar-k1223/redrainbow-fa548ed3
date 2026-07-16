@@ -9,6 +9,7 @@ import {
   type Incident, type IncidentStatus,
 } from "@/lib/incidentStore";
 import { publishToVault } from "@/lib/vaultStore";
+import { useCan } from "@/lib/rbac";
 
 const sevStyle: Record<string, string> = {
   Critical: "text-primary border-primary/30 bg-primary/10",
@@ -38,6 +39,8 @@ const Incidents = () => {
   const [filter, setFilter] = useState<"All" | IncidentStatus>("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
+  const canCreate = useCan("incident.create");
+  const canAdvance = useCan("incident.advance");
 
   useEffect(() => { wireIncidentBus(); const u = subscribeIncidents(setItems); return () => u(); }, []);
   useEffect(() => { if (!selectedId && items[0]) setSelectedId(items[0].id); }, [items, selectedId]);
@@ -94,7 +97,7 @@ const Incidents = () => {
               </button>
             ))}
           </div>
-          <Button onClick={spawn} className="font-mono bg-primary hover:bg-primary/90 text-primary-foreground glow-red text-sm">
+          <Button onClick={spawn} disabled={!canCreate} className="font-mono bg-primary hover:bg-primary/90 text-primary-foreground glow-red text-sm disabled:opacity-50">
             <Plus className="h-4 w-4 mr-2" /> New Incident
           </Button>
         </div>
@@ -174,7 +177,7 @@ const Incidents = () => {
               </div>
 
               {selected.status !== "Closed" && (
-                <Button onClick={() => advance(selected)} className="w-full font-mono bg-primary hover:bg-primary/90 text-primary-foreground text-sm">
+                <Button onClick={() => advance(selected)} disabled={!canAdvance} className="w-full font-mono bg-primary hover:bg-primary/90 text-primary-foreground text-sm disabled:opacity-50">
                   Advance → {statusFlow[Math.min(statusFlow.indexOf(selected.status) + 1, statusFlow.length - 1)]}
                 </Button>
               )}

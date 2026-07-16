@@ -2,6 +2,9 @@ import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { NotificationCenter } from "@/components/NotificationCenter";
+import { PreferencesProvider } from "@/components/PreferencesProvider";
+import { ShortcutsDialog } from "@/components/ShortcutsDialog";
+
 
 
 const statusNodes = [
@@ -14,7 +17,9 @@ const statusNodes = [
 const DashboardLayout = () => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background bg-grid">
+      <PreferencesProvider />
+      <ShortcutsDialog />
+      <div className="min-h-screen flex w-full bg-background bg-grid data-[density=compact]:text-[13px]" data-density-scope>
         <DashboardSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 flex items-center border-b border-border/50 bg-background/70 backdrop-blur-xl px-4 gap-4">

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Radio, Wifi, AlertTriangle, TrendingUp, Rocket } from "lucide-react";
 import { toast } from "sonner";
 import { bus, busIds, useBusEvent, type Severity } from "@/lib/eventBus";
+import { useCan } from "@/lib/rbac";
 
 type Signal = { id: string; source: string; type: string; severity: Severity | "Info"; time: string; count: number };
 
@@ -25,6 +26,7 @@ const severityColors: Record<string, string> = {
 
 const Signals = () => {
   const [signals, setSignals] = useState<Signal[]>(seedSignals);
+  const canLaunch = useCan("mission.launch");
 
   const pushSignal = (partial: Omit<Signal, "id" | "time">, cause?: Parameters<typeof bus.emit>[0]) => {
     const sig: Signal = { id: busIds.signal(), time: "just now", ...partial };
@@ -94,7 +96,7 @@ const Signals = () => {
                   </span>
                   <span className="font-mono text-xs text-muted-foreground w-14 text-right">{s.count}</span>
                   <span className="font-mono text-xs text-muted-foreground w-16 text-right">{s.time}</span>
-                  {(s.severity === "Critical" || s.severity === "High") && (
+                  {canLaunch && (s.severity === "Critical" || s.severity === "High") && (
                     <button
                       onClick={() => {
                         const mid = busIds.mission();
