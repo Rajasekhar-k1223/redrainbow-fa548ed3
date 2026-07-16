@@ -218,6 +218,32 @@ const SettingsPage = () => {
           </div>
         </div>
       </div>
+        </div>
+      </div>
+
+      {/* Snapshot */}
+      <div className="rounded-lg border border-border/50 bg-card/50 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Save className="h-4 w-4 text-secondary" />
+          <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Cockpit Snapshot</span>
+        </div>
+        <p className="font-mono text-xs text-muted-foreground mb-3">
+          Export or restore the full local state (vault, incidents, IOCs, operators, integrations, preferences).
+          Useful for demo resets or handoffs. Import triggers a reload.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button disabled={!canExport} onClick={() => { downloadSnapshot(); toast.success("Snapshot downloaded"); }}
+            className="font-mono text-xs bg-secondary/10 hover:bg-secondary/20 text-secondary border border-secondary/40">
+            <Download className="h-3 w-3 mr-2" /> Export snapshot
+          </Button>
+          <Button disabled={!canImport} onClick={() => fileRef.current?.click()}
+            className="font-mono text-xs bg-primary/10 hover:bg-primary/20 text-primary border border-primary/40">
+            <Upload className="h-3 w-3 mr-2" /> Import snapshot
+          </Button>
+          <input ref={fileRef} type="file" accept="application/json" className="hidden"
+            onChange={(e) => onImport(e.target.files?.[0])} />
+        </div>
+      </div>
     </div>
   );
 };
