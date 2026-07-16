@@ -1,6 +1,8 @@
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
+import { NotificationCenter } from "@/components/NotificationCenter";
+
 
 const statusNodes = [
   { name: "Synaptic Hub", color: "hsl(var(--glow-green))" },
@@ -37,6 +39,7 @@ const DashboardLayout = () => {
                 <span className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">Command</span>
                 <kbd className="font-mono text-[10px] px-1 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border/50">⌘K</kbd>
               </button>
+              <NotificationCenter />
               <span className="font-mono text-[10px] tracking-wider text-muted-foreground hidden sm:inline">
                 {new Date().toUTCString().slice(17, 25)} UTC
               </span>

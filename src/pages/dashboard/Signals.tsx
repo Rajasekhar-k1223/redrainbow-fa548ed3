@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Radio, Wifi, AlertTriangle, TrendingUp } from "lucide-react";
+import { Radio, Wifi, AlertTriangle, TrendingUp, Rocket } from "lucide-react";
+import { toast } from "sonner";
 import { bus, busIds, useBusEvent, type Severity } from "@/lib/eventBus";
 
 type Signal = { id: string; source: string; type: string; severity: Severity | "Info"; time: string; count: number };
@@ -91,8 +92,30 @@ const Signals = () => {
                   <span className={`px-2 py-0.5 rounded text-xs font-mono border ${severityColors[s.severity]}`}>
                     {s.severity}
                   </span>
-                  <span className="font-mono text-xs text-muted-foreground w-16 text-right">{s.count}</span>
+                  <span className="font-mono text-xs text-muted-foreground w-14 text-right">{s.count}</span>
                   <span className="font-mono text-xs text-muted-foreground w-16 text-right">{s.time}</span>
+                  {(s.severity === "Critical" || s.severity === "High") && (
+                    <button
+                      onClick={() => {
+                        const mid = busIds.mission();
+                        const team = s.severity === "Critical" ? "Blue Team Alpha" : "Purple Cell";
+                        bus.emit("mission.created", {
+                          id: mid,
+                          name: `Playbook: ${s.type}`,
+                          type: s.severity === "Critical" ? "Blue" : "Purple",
+                          team,
+                          origin: s.id,
+                        });
+                        bus.emit("mission.started", { id: mid, startedAt: Date.now() });
+                        toast.success(`Mission ${mid} dispatched → ${team}`);
+                      }}
+                      className="flex items-center gap-1.5 px-2 py-1 rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 transition-colors font-mono text-[10px] text-primary tracking-wider"
+                      aria-label="Launch playbook"
+                    >
+                      <Rocket className="h-3 w-3" />
+                      LAUNCH
+                    </button>
+                  )}
                 </div>
               </motion.div>
             ))}
