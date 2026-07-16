@@ -62,9 +62,22 @@ const SettingsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings & RBAC</h1>
-        <p className="font-mono text-xs text-muted-foreground mt-1">Operator roster, role capabilities, and cockpit preferences</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Settings & RBAC</h1>
+          <p className="font-mono text-xs text-muted-foreground mt-1">Operator roster, role capabilities, and cockpit preferences</p>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-2 rounded border border-border/50 bg-card/50">
+          <UserCog className="h-4 w-4 text-secondary" />
+          <span className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">Acting as</span>
+          <select
+            value={currentOp?.id ?? ""}
+            onChange={(e) => { setCurrentOperatorId(e.target.value); toast.success(`Switched operator`); }}
+            className="h-7 px-2 rounded bg-background border border-border/50 font-mono text-xs text-foreground"
+          >
+            {operators.map((o) => <option key={o.id} value={o.id}>{o.handle} — {o.role}</option>)}
+          </select>
+        </div>
       </div>
 
       {/* Operator roster */}
