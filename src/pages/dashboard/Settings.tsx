@@ -218,8 +218,6 @@ const SettingsPage = () => {
           </div>
         </div>
       </div>
-        </div>
-      </div>
 
       {/* Snapshot */}
       <div className="rounded-lg border border-border/50 bg-card/50 p-5">
