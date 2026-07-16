@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Users, Plus, Trash2, Shield, KeyRound, Bell, Palette, Save } from "lucide-react";
+import { Users, Plus, Trash2, Shield, KeyRound, Bell, Palette, Save, Download, Upload, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -9,6 +9,8 @@ import {
   subscribePrefs, updatePrefs,
   type Operator, type Role, type Preferences,
 } from "@/lib/settingsStore";
+import { useCurrentOperator, setCurrentOperatorId, useCan } from "@/lib/rbac";
+import { downloadSnapshot, importSnapshot } from "@/lib/stateSnapshot";
 
 const ROLES: Role[] = ["Admin", "Analyst", "Operator", "Auditor", "Viewer"];
 const roleStyle: Record<Role, string> = {
@@ -31,6 +33,11 @@ const SettingsPage = () => {
   const [operators, setOperators] = useState<Operator[]>([]);
   const [prefs, setPrefs] = useState<Preferences | null>(null);
   const [draft, setDraft] = useState<{ handle: string; email: string; role: Role }>({ handle: "", email: "", role: "Analyst" });
+  const currentOp = useCurrentOperator();
+  const canManage = useCan("operator.manage");
+  const canExport = useCan("state.export");
+  const canImport = useCan("state.import");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const a = subscribeOperators(setOperators);
@@ -39,10 +46,16 @@ const SettingsPage = () => {
   }, []);
 
   const invite = () => {
+    if (!canManage) return toast.error("Insufficient role");
     if (!draft.handle.trim() || !draft.email.trim()) return toast.error("Handle and email required");
     const op = addOperator({ handle: draft.handle.trim(), email: draft.email.trim(), role: draft.role, mfa: false });
     toast.success(`${op.handle} invited as ${op.role}`);
     setDraft({ handle: "", email: "", role: "Analyst" });
+  };
+
+  const onImport = async (f: File | undefined) => {
+    if (!f || !canImport) return;
+    try { await importSnapshot(f); } catch (e) { toast.error(`Import failed: ${(e as Error).message}`); }
   };
 
   if (!prefs) return null;
