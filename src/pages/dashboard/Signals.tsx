@@ -4,6 +4,7 @@ import { Radio, Wifi, AlertTriangle, TrendingUp, Rocket } from "lucide-react";
 import { toast } from "sonner";
 import { bus, busIds, useBusEvent, type Severity } from "@/lib/eventBus";
 import { useCan } from "@/lib/rbac";
+import { CopilotInline } from "@/components/CopilotInline";
 
 type Signal = { id: string; source: string; type: string; severity: Severity | "Info"; time: string; count: number };
 
@@ -72,6 +73,8 @@ const Signals = () => {
           </motion.div>
         ))}
       </div>
+
+      <CopilotInline route="/dashboard/signals" title="Copilot · Signal Recommendations" />
 
       {/* Signal feed */}
       <div className="rounded-lg border border-border/50 bg-card/50 overflow-hidden">

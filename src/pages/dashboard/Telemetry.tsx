@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Activity, Key, Plus, Copy, ShieldAlert, Cpu, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { bus, useBusEvent } from "@/lib/eventBus";
+import { subscribePrefs, type Preferences } from "@/lib/settingsStore";
 
 type Event = { time: string; source: string; type: string; msg: string; sev: string; icon: typeof ShieldAlert; uid: number };
 
@@ -44,6 +45,9 @@ const apiKeys = [
 
 const Telemetry = () => {
   const [stream, setStream] = useState<Event[]>(seed);
+  const [pollMs, setPollMs] = useState<number>(2500);
+
+  useEffect(() => subscribePrefs((p: Preferences) => setPollMs(Math.max(500, Math.round(p.telemetryPolling * 1000)))), []);
 
   const prepend = (ev: Omit<Event, "uid" | "time">) => {
     const time = new Date().toTimeString().slice(0, 8);
@@ -55,9 +59,9 @@ const Telemetry = () => {
     const iv = setInterval(() => {
       const pick = pool[Math.floor(Math.random() * pool.length)];
       prepend(pick);
-    }, 2500);
+    }, pollMs);
     return () => clearInterval(iv);
-  }, []);
+  }, [pollMs]);
 
   useBusEvent("signal.created", (p) => {
     prepend({ source: p.source, type: p.type, msg: `Signal ${p.id} raised (${p.severity})`, sev: p.severity, icon: ShieldAlert });
@@ -78,7 +82,8 @@ const Telemetry = () => {
           <div className="p-4 border-b border-border/50 flex items-center gap-2">
             <span className="status-dot" />
             <span className="font-mono text-xs text-muted-foreground">LIVE TELEMETRY STREAM</span>
-            <span className="ml-auto font-mono text-xs text-glow-cyan">2,418 events/sec</span>
+            <span className="ml-auto font-mono text-[10px] text-muted-foreground">poll {(pollMs / 1000).toFixed(1)}s</span>
+            <span className="font-mono text-xs text-glow-cyan">2,418 events/sec</span>
           </div>
           <div className="divide-y divide-border/30 max-h-[600px] overflow-auto">
             <AnimatePresence initial={false}>

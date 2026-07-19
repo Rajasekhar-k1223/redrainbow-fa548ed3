@@ -10,6 +10,8 @@ import {
 } from "@/lib/incidentStore";
 import { publishToVault } from "@/lib/vaultStore";
 import { useCan } from "@/lib/rbac";
+import { CopilotInline } from "@/components/CopilotInline";
+import { generateIncidentPdf } from "@/lib/incidentPdf";
 
 const sevStyle: Record<string, string> = {
   Critical: "text-primary border-primary/30 bg-primary/10",
@@ -57,11 +59,18 @@ const Incidents = () => {
     updateIncident(inc.id, { status: next });
     toast.success(`${inc.id} → ${next}`);
     if (next === "Closed") {
+      const closed = { ...inc, status: "Closed" as const, updatedAt: Date.now() };
+      const { blob, filename, sizeKb } = generateIncidentPdf(closed);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
       publishToVault({
-        name: `${inc.id}_case_file.json`, type: "Document", size: "42 KB",
+        name: filename, type: "Document", size: `${sizeKb} KB`,
         source: `incident:${inc.id}`,
       });
-      toast.info("Case file sealed to Evidence Vault");
+      toast.info("Case-file PDF sealed to Evidence Vault");
     }
   };
 
@@ -118,6 +127,8 @@ const Incidents = () => {
           </div>
         ))}
       </div>
+
+      <CopilotInline route="/dashboard/incidents" title="Copilot · Incident Recommendations" />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* List */}
