@@ -22,6 +22,7 @@ import Reports from "./pages/dashboard/Reports.tsx";
 import SettingsPage from "./pages/dashboard/Settings.tsx";
 import Integrations from "./pages/dashboard/Integrations.tsx";
 import Copilot from "./pages/dashboard/Copilot.tsx";
+import AuditLog from "./pages/dashboard/AuditLog.tsx";
 import { CommandPalette } from "./components/CommandPalette.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="constellation" element={<Constellation />} />
             <Route path="copilot" element={<Copilot />} />
             <Route path="terminal" element={<TerminalPage />} />
+            <Route path="audit" element={<AuditLog />} />
             <Route path="reports" element={<Reports />} />
             <Route path="integrations" element={<Integrations />} />
             <Route path="settings" element={<SettingsPage />} />
