@@ -79,6 +79,13 @@ export const publishToVault = (
 
 export const getPublished = () => published;
 
+// Chain-of-custody transition for a sealed artifact (Sealed → In Review → Transferred).
+export const setCustody = (id: string, custody: VaultItem["custody"]) => {
+  published = published.map((i) => (i.id === id ? { ...i, custody } : i));
+  persist();
+  listeners.forEach((l) => l(published));
+};
+
 export const clearVault = () => {
   published = [];
   persist();
