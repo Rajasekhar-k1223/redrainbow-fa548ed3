@@ -6,6 +6,7 @@
 // Persisted to localStorage so reloads don't wipe the cockpit's sealed evidence.
 
 import { bus } from "./eventBus";
+import { logAudit } from "./auditStore";
 
 export type VaultItem = {
   id: string;
@@ -81,12 +82,19 @@ export const getPublished = () => published;
 
 // Chain-of-custody transition for a sealed artifact (Sealed → In Review → Transferred).
 export const setCustody = (id: string, custody: VaultItem["custody"]) => {
+  const before = published.find((i) => i.id === id);
   published = published.map((i) => (i.id === id ? { ...i, custody } : i));
+  logAudit({
+    domain: "vault", action: "custody.changed", subject: id,
+    summary: `Custody ${before?.custody ?? "?"} → ${custody} for "${before?.name ?? id}"`,
+    meta: { from: before?.custody, to: custody },
+  });
   persist();
   listeners.forEach((l) => l(published));
 };
 
 export const clearVault = () => {
+  logAudit({ domain: "vault", action: "vault.cleared", subject: "vault", summary: `Purged ${published.length} sealed artifacts` });
   published = [];
   persist();
   listeners.forEach((l) => l(published));

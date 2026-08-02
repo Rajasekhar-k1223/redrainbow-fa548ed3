@@ -1,4 +1,4 @@
-import { Shield, Activity, Lock, Layers, Terminal, Network, Radio, LogOut, Boxes, Bug, FileBadge, AlertOctagon, Fingerprint, FileText, Plug, Settings as SettingsIcon, Sparkles } from "lucide-react";
+import { Shield, Activity, Lock, Layers, Terminal, Network, Radio, LogOut, Boxes, Bug, FileBadge, AlertOctagon, Fingerprint, FileText, Plug, Settings as SettingsIcon, Sparkles, ScrollText } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import {
@@ -46,6 +46,7 @@ const sections = [
   {
     label: "OPERATIONS",
     items: [
+      { title: "Audit Ledger", url: "/dashboard/audit", icon: ScrollText },
       { title: "Reporting Center", url: "/dashboard/reports", icon: FileText },
       { title: "Integrations", url: "/dashboard/integrations", icon: Plug },
       { title: "Settings & RBAC", url: "/dashboard/settings", icon: SettingsIcon },

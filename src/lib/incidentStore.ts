@@ -3,6 +3,7 @@
 // port.discovered / vulnerability.detected feed the IOC ledger.
 
 import { bus, type Severity } from "./eventBus";
+import { logAudit } from "./auditStore";
 
 export type IncidentStatus = "Open" | "Investigating" | "Contained" | "Closed";
 export type IncidentSeverity = Severity;
@@ -122,17 +123,36 @@ export const createIncident = (partial: Omit<Incident, "id" | "createdAt" | "upd
   };
   incidents = [inc, ...incidents].slice(0, 100);
   emitInc();
+  logAudit({
+    domain: "incident", action: "incident.opened", subject: inc.id,
+    summary: `Opened ${inc.severity} incident "${inc.title}" (source ${inc.source})`,
+    actor: inc.owner, meta: { severity: inc.severity, status: inc.status },
+  });
   return inc;
 };
 
 export const updateIncident = (id: string, patch: Partial<Incident>) => {
+  const before = incidents.find((i) => i.id === id);
   incidents = incidents.map((i) => i.id === id ? { ...i, ...patch, updatedAt: Date.now() } : i);
   emitInc();
+  if (before) {
+    const changes = Object.entries(patch)
+      .map(([k, v]) => `${k}: ${String((before as unknown as Record<string, unknown>)[k])} → ${String(v)}`)
+      .join(", ");
+    logAudit({
+      domain: "incident",
+      action: patch.status ? "incident.status.changed" : "incident.updated",
+      subject: id,
+      summary: changes || `Updated ${id}`,
+      meta: patch as unknown as Record<string, unknown>,
+    });
+  }
 };
 
 export const addIncidentNote = (id: string, note: string) => {
   incidents = incidents.map((i) => i.id === id ? { ...i, notes: [`${new Date().toLocaleTimeString()} — ${note}`, ...i.notes], updatedAt: Date.now() } : i);
   emitInc();
+  logAudit({ domain: "incident", action: "incident.note.added", subject: id, summary: note });
 };
 
 export const addIoc = (partial: Omit<IOC, "id" | "firstSeen" | "hits"> & Partial<Pick<IOC, "hits">>): IOC => {
