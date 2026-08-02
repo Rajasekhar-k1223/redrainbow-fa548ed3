@@ -3,6 +3,7 @@
 // port.discovered / vulnerability.detected feed the IOC ledger.
 
 import { bus, type Severity } from "./eventBus";
+import { logAudit } from "./auditStore";
 
 export type IncidentStatus = "Open" | "Investigating" | "Contained" | "Closed";
 export type IncidentSeverity = Severity;
@@ -136,14 +137,14 @@ export const updateIncident = (id: string, patch: Partial<Incident>) => {
   emitInc();
   if (before) {
     const changes = Object.entries(patch)
-      .map(([k, v]) => `${k}: ${String((before as Record<string, unknown>)[k])} → ${String(v)}`)
+      .map(([k, v]) => `${k}: ${String((before as unknown as Record<string, unknown>)[k])} → ${String(v)}`)
       .join(", ");
     logAudit({
       domain: "incident",
       action: patch.status ? "incident.status.changed" : "incident.updated",
       subject: id,
       summary: changes || `Updated ${id}`,
-      meta: patch as Record<string, unknown>,
+      meta: patch as unknown as Record<string, unknown>,
     });
   }
 };

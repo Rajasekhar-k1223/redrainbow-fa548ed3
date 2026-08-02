@@ -23,7 +23,7 @@ const AuditLog = () => {
   const [entries, setEntries] = useState<AuditEntry[]>([]);
   const [filter, setFilter] = useState<"All" | AuditDomain>("All");
   const [query, setQuery] = useState("");
-  const canPurge = useCan("vault.custody") ?? true;
+  const canPurge = useCan("vault.clear");
 
   useEffect(() => subscribeAudit(setEntries), []);
 
