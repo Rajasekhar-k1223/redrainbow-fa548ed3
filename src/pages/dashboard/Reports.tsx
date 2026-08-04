@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { FileText, Download, ShieldCheck, AlertOctagon, Fingerprint, BookOpen, Activity } from "lucide-react";
+import { FileText, Download, ShieldCheck, AlertOctagon, Fingerprint, BookOpen, Activity, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 import { subscribeIncidents, subscribeIocs, type Incident, type IOC } from "@/lib/incidentStore";
 import { subscribeVault, type VaultItem } from "@/lib/vaultStore";
 import { publishToVault } from "@/lib/vaultStore";
+import { subscribeAudit, logAudit, type AuditEntry } from "@/lib/auditStore";
 
-type ReportKind = "executive" | "incident" | "ioc" | "compliance" | "activity";
+type ReportKind = "executive" | "incident" | "ioc" | "compliance" | "activity" | "audit";
 
 interface ReportDef {
   kind: ReportKind;
@@ -24,6 +25,7 @@ const REPORTS: ReportDef[] = [
   { kind: "ioc",       title: "IOC Intelligence Pack",    description: "Full indicator ledger with severity, tags, and hit counts.",       icon: Fingerprint,  accent: "text-secondary" },
   { kind: "compliance",title: "Compliance Evidence Pack", description: "Framework controls + sealed evidence references for auditors.",    icon: BookOpen,     accent: "text-glow-green" },
   { kind: "activity",  title: "24h Activity Digest",      description: "Signals, missions, scans, and vault writes over the last day.",    icon: Activity,     accent: "text-glow-cyan" },
+  { kind: "audit",     title: "Audit Ledger Attestation", description: "Chain-of-action ledger with tamper-evident digests for review.",   icon: ScrollText,   accent: "text-glow-amber" },
 ];
 
 const drawHeader = (doc: jsPDF, subtitle: string) => {
@@ -49,6 +51,7 @@ const Reports = () => {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [iocs, setIocs] = useState<IOC[]>([]);
   const [vault, setVault] = useState<VaultItem[]>([]);
+  const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [history, setHistory] = useState<{ kind: ReportKind; name: string; at: string }[]>(() => {
     if (typeof window === "undefined") return [];
     try { return JSON.parse(window.localStorage.getItem("redrainbow.reports.v1") || "[]"); } catch { return []; }
@@ -58,7 +61,8 @@ const Reports = () => {
     const a = subscribeIncidents(setIncidents);
     const b = subscribeIocs(setIocs);
     const c = subscribeVault(setVault);
-    return () => { a(); b(); c(); };
+    const d = subscribeAudit(setAudit);
+    return () => { a(); b(); c(); d(); };
   }, []);
 
   const pushHistory = (kind: ReportKind, name: string) => {
@@ -118,6 +122,15 @@ const Reports = () => {
       incidents.filter((i) => i.updatedAt > dayAgo).forEach((i) => line(`${i.id} → ${i.status} · ${i.title}`, 50));
       heading("Evidence sealed (24h)");
       vault.slice(0, 20).forEach((v) => line(`${v.id}  ${v.name}  ${v.sealed}`, 50));
+    } else if (kind === "audit") {
+      line(`Ledger entries: ${audit.length}`);
+      line(`Chain head digest: ${audit[0]?.digest ?? "genesis"}`);
+      heading("Chain of Action");
+      if (audit.length === 0) line("Ledger empty — no recorded actions yet.", 50);
+      audit.slice(0, 120).forEach((e) => {
+        line(`${new Date(e.at).toISOString().replace("T", " ").slice(0, 19)}Z  [${e.domain.toUpperCase()}]  ${e.action}  ${e.subject}`, 50);
+        line(`     ${e.summary.slice(0, 100)}  · actor ${e.actor} · digest ${e.digest}`, 50);
+      });
     }
 
     drawFooter(doc, y);
@@ -125,6 +138,7 @@ const Reports = () => {
     doc.save(fname);
     pushHistory(kind, fname);
     publishToVault({ name: fname, type: "Document", size: "~90 KB", source: `report:${kind}` });
+    logAudit({ domain: "vault", action: "report.generated", subject: fname, summary: `${def.title} exported and sealed to the Evidence Vault` });
     toast.success(`${def.title} exported`, { description: "Saved to downloads + Evidence Vault." });
   };
 
