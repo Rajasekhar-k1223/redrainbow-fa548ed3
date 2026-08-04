@@ -118,16 +118,18 @@ const IOCs = () => {
       <div className="rounded-lg border border-border/50 bg-card/50 overflow-hidden">
         <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 border-b border-border/50 font-mono text-xs text-muted-foreground uppercase tracking-wider">
           <div className="col-span-1">Type</div>
-          <div className="col-span-4">Indicator</div>
+          <div className="col-span-3">Indicator</div>
           <div className="col-span-2">Severity</div>
+          <div className="col-span-3">Threat Intel</div>
           <div className="col-span-2">Source</div>
-          <div className="col-span-2">Tags</div>
           <div className="col-span-1 text-right">Hits</div>
         </div>
         <div className="divide-y divide-border/30 max-h-[520px] overflow-y-auto">
           <AnimatePresence initial={false}>
             {filtered.map((ioc) => {
               const Icon = typeIcon[ioc.type];
+              const report = intel[ioc.value];
+              const busy = pending.includes(ioc.value);
               return (
                 <motion.div key={ioc.id}
                   initial={{ opacity: 0, x: -10, backgroundColor: "hsl(var(--glow-cyan) / 0.08)" }}
@@ -136,19 +138,32 @@ const IOCs = () => {
                   transition={{ duration: 0.4 }}
                   className="grid grid-cols-1 md:grid-cols-12 gap-4 px-4 py-3 items-center group">
                   <div className="md:col-span-1"><Icon className="h-4 w-4 text-muted-foreground" /></div>
-                  <div className="md:col-span-4 min-w-0">
+                  <div className="md:col-span-3 min-w-0">
                     <p className="font-mono text-sm text-foreground truncate">{ioc.value}</p>
                     <p className="font-mono text-[10px] text-muted-foreground">{ioc.id}</p>
                   </div>
                   <div className="md:col-span-2">
                     <span className={`px-2 py-0.5 rounded text-xs font-mono border ${sevStyle[ioc.severity]}`}>{ioc.severity}</span>
                   </div>
-                  <div className="md:col-span-2 font-mono text-xs text-muted-foreground truncate">{ioc.source}</div>
-                  <div className="md:col-span-2 flex flex-wrap gap-1">
-                    {ioc.tags.map((t) => (
-                      <span key={t} className="px-1.5 py-0.5 rounded bg-muted/40 font-mono text-[10px] text-muted-foreground">{t}</span>
-                    ))}
+                  <div className="md:col-span-3">
+                    {report ? (
+                      <button onClick={() => setOpen(report)} className="flex items-center gap-2 text-left">
+                        <span className={`px-2 py-0.5 rounded text-xs font-mono border ${verdictStyle[report.verdict]}`}>
+                          {report.verdict}
+                        </span>
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          risk {report.risk} · {report.country}
+                        </span>
+                      </button>
+                    ) : (
+                      <button onClick={() => void runEnrich(ioc)} disabled={busy}
+                        className="flex items-center gap-1 font-mono text-[10px] text-secondary hover:text-secondary/80 disabled:opacity-60">
+                        {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Radar className="h-3 w-3" />}
+                        {busy ? "querying feeds…" : "Enrich"}
+                      </button>
+                    )}
                   </div>
+                  <div className="md:col-span-2 font-mono text-xs text-muted-foreground truncate">{ioc.source}</div>
                   <div className="md:col-span-1 flex items-center justify-end gap-2">
                     <span className="font-mono text-xs text-foreground">{ioc.hits}</span>
                     <button onClick={() => { removeIoc(ioc.id); toast.success(`${ioc.id} removed`); }}
@@ -168,7 +183,10 @@ const IOCs = () => {
           )}
         </div>
       </div>
+
+      <IntelDrawer report={open} onClose={() => setOpen(null)} />
     </div>
+
   );
 };
 
