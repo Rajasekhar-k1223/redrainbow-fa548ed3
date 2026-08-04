@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Fingerprint, Plus, Search, Trash2, Globe, Hash, Server, Link2 } from "lucide-react";
+import { Fingerprint, Plus, Search, Trash2, Globe, Hash, Server, Link2, Radar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { subscribeIocs, addIoc, removeIoc, wireIncidentBus, type IOC, type IOCType } from "@/lib/incidentStore";
+import { enrich, subscribeIntel, verdictStyle, type IntelReport } from "@/lib/threatIntel";
+import { IntelDrawer } from "@/components/IntelDrawer";
 
 const typeIcon: Record<IOCType, React.ComponentType<{ className?: string }>> = {
   ip: Server, domain: Globe, hash: Hash, url: Link2, port: Server,
@@ -22,20 +24,45 @@ const IOCs = () => {
   const [q, setQ] = useState("");
   const [type, setType] = useState<"all" | IOCType>("all");
   const [draft, setDraft] = useState<{ type: IOCType; value: string }>({ type: "ip", value: "" });
+  const [intel, setIntel] = useState<Record<string, IntelReport>>({});
+  const [pending, setPending] = useState<string[]>([]);
+  const [open, setOpen] = useState<IntelReport | null>(null);
 
   useEffect(() => { wireIncidentBus(); const u = subscribeIocs(setItems); return () => u(); }, []);
+  useEffect(() => subscribeIntel(setIntel), []);
 
   const filtered = useMemo(() => items.filter((i) =>
     (type === "all" || i.type === type) &&
     (!q || i.value.toLowerCase().includes(q.toLowerCase()) || i.tags.some((t) => t.includes(q.toLowerCase())))
   ), [items, q, type]);
 
+  const runEnrich = async (ioc: Pick<IOC, "value" | "type">) => {
+    setPending((p) => [...p, ioc.value]);
+    try {
+      const r = await enrich(ioc.value, ioc.type);
+      toast.success(`${ioc.value} → ${r.verdict}`, { description: `Risk ${r.risk}/100 · ${r.country} · ${r.asn}` });
+      return r;
+    } finally {
+      setPending((p) => p.filter((v) => v !== ioc.value));
+    }
+  };
+
+  const enrichAll = async () => {
+    const targets = filtered.filter((i) => !intel[i.value]);
+    if (targets.length === 0) { toast.info("All visible indicators already enriched"); return; }
+    toast.info(`Enriching ${targets.length} indicators across 6 feeds…`);
+    for (const t of targets) await runEnrich(t);
+    toast.success("Threat intel sweep complete");
+  };
+
   const submit = () => {
     if (!draft.value.trim()) return;
     const ioc = addIoc({ type: draft.type, value: draft.value.trim(), severity: "Medium", source: "manual", tags: ["manual"] });
     toast.success(`${ioc.id} added to ledger`);
+    void runEnrich(ioc);
     setDraft({ type: draft.type, value: "" });
   };
+
 
   return (
     <div className="space-y-6">
