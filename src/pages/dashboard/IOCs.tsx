@@ -71,7 +71,12 @@ const IOCs = () => {
           <h1 className="text-2xl font-bold text-foreground">IOC Ledger</h1>
           <p className="font-mono text-xs text-muted-foreground mt-1">Threat indicators auto-collected from scans, ports, and vulnerabilities</p>
         </div>
+        <Button onClick={enrichAll} variant="outline"
+          className="font-mono text-xs h-9 border-secondary/40 text-secondary hover:bg-secondary/10">
+          <Radar className="h-3 w-3 mr-1" /> Enrich all ({filtered.filter((i) => !intel[i.value]).length})
+        </Button>
       </div>
+
 
       {/* stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
