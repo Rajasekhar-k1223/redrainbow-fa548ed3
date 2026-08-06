@@ -14,6 +14,7 @@ import Constellation from "./pages/dashboard/Constellation.tsx";
 import TerminalPage from "./pages/dashboard/Terminal.tsx";
 import Assets from "./pages/dashboard/Assets.tsx";
 import Vulnerabilities from "./pages/dashboard/Vulnerabilities.tsx";
+import Drift from "./pages/dashboard/Drift.tsx";
 import Compliance from "./pages/dashboard/Compliance.tsx";
 import Telemetry from "./pages/dashboard/Telemetry.tsx";
 import Incidents from "./pages/dashboard/Incidents.tsx";
@@ -42,6 +43,7 @@ const App = () => (
             <Route index element={<Overview />} />
             <Route path="assets" element={<Assets />} />
             <Route path="vulnerabilities" element={<Vulnerabilities />} />
+            <Route path="drift" element={<Drift />} />
             <Route path="compliance" element={<Compliance />} />
             <Route path="telemetry" element={<Telemetry />} />
             <Route path="signals" element={<Signals />} />

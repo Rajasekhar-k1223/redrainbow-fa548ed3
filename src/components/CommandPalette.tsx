@@ -23,6 +23,7 @@ const routes: Array<{ label: string; path: string; icon: React.ComponentType<{ c
   { label: "Executive Cockpit",    path: "/dashboard",                 icon: Activity,       group: "Navigate" },
   { label: "Asset Inventory",      path: "/dashboard/assets",          icon: Boxes,          group: "Navigate" },
   { label: "Vulnerabilities",      path: "/dashboard/vulnerabilities", icon: Bug,            group: "Navigate" },
+  { label: "Attack Surface Drift", path: "/dashboard/drift",           icon: Bug,            group: "Navigate" },
   { label: "Compliance",           path: "/dashboard/compliance",      icon: FileBadge,      group: "Navigate" },
   { label: "Telemetry",            path: "/dashboard/telemetry",       icon: Radio,          group: "Navigate" },
   { label: "Signal Mesh",          path: "/dashboard/signals",         icon: Activity,       group: "Navigate" },
