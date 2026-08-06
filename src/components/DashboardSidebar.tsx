@@ -1,4 +1,4 @@
-import { Shield, Activity, Lock, Layers, Terminal, Network, Radio, LogOut, Boxes, Bug, FileBadge, AlertOctagon, Fingerprint, FileText, Plug, Settings as SettingsIcon, Sparkles, ScrollText } from "lucide-react";
+import { Shield, Activity, Lock, Layers, Terminal, Network, Radio, LogOut, Boxes, Bug, FileBadge, AlertOctagon, Fingerprint, FileText, Plug, Settings as SettingsIcon, Sparkles, ScrollText, GitCompareArrows } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import {
