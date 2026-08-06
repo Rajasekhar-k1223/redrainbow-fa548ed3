@@ -43,6 +43,7 @@ const App = () => (
             <Route index element={<Overview />} />
             <Route path="assets" element={<Assets />} />
             <Route path="vulnerabilities" element={<Vulnerabilities />} />
+            <Route path="drift" element={<Drift />} />
             <Route path="compliance" element={<Compliance />} />
             <Route path="telemetry" element={<Telemetry />} />
             <Route path="signals" element={<Signals />} />
