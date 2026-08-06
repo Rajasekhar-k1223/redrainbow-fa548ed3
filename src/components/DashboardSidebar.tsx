@@ -21,6 +21,7 @@ const sections = [
       { title: "Executive Cockpit", url: "/dashboard", icon: Activity, end: true },
       { title: "Asset Inventory", url: "/dashboard/assets", icon: Boxes },
       { title: "Vulnerabilities", url: "/dashboard/vulnerabilities", icon: Bug },
+      { title: "Surface Drift", url: "/dashboard/drift", icon: GitCompareArrows },
       { title: "Compliance & Reports", url: "/dashboard/compliance", icon: FileBadge },
     ],
   },
