@@ -372,8 +372,7 @@ async function execute(runId: string, fromIndex: number, approved = false) {
       type: "Response Log",
       size: `${Math.max(1, Math.round(transcript.length / 1024))} KB`,
       source: `SOAR/${pb.name}`,
-      content: transcript,
-    } as Parameters<typeof publishToVault>[0]);
+    });
   }
 
   bus.emit("notification.created", {

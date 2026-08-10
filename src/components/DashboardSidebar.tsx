@@ -1,4 +1,4 @@
-import { Shield, Activity, Lock, Layers, Terminal, Network, Radio, LogOut, Boxes, Bug, FileBadge, AlertOctagon, Fingerprint, FileText, Plug, Settings as SettingsIcon, Sparkles, ScrollText, GitCompareArrows } from "lucide-react";
+import { Shield, Activity, Lock, Layers, Terminal, Network, Radio, LogOut, Boxes, Bug, FileBadge, AlertOctagon, Fingerprint, FileText, Plug, Settings as SettingsIcon, Sparkles, ScrollText, GitCompareArrows, Zap } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import {
@@ -38,6 +38,7 @@ const sections = [
   {
     label: "COMMAND LAYER",
     items: [
+      { title: "Automated Response", url: "/dashboard/response", icon: Zap },
       { title: "Mission Orchestration", url: "/dashboard/missions", icon: Layers },
       { title: "Multi-OS Constellation", url: "/dashboard/constellation", icon: Network },
       { title: "Copilot", url: "/dashboard/copilot", icon: Sparkles },
