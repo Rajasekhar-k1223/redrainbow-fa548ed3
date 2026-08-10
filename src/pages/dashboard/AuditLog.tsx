@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ScrollText, Download, Search, Lock, AlertOctagon, Layers, Trash2, Fingerprint } from "lucide-react";
+import { ScrollText, Download, Search, Lock, AlertOctagon, Layers, Trash2, Fingerprint, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ const domainMeta: Record<AuditDomain, { label: string; icon: typeof Lock; tone: 
   vault:    { label: "Vault",    icon: Lock,          tone: "text-secondary border-secondary/30 bg-secondary/10", dot: "bg-secondary" },
   incident: { label: "Incident", icon: AlertOctagon,  tone: "text-primary border-primary/30 bg-primary/10",       dot: "bg-primary" },
   mission:  { label: "Mission",  icon: Layers,        tone: "text-glow-amber border-glow-amber/30 bg-glow-amber/10", dot: "bg-glow-amber" },
+  response: { label: "Response", icon: Zap,           tone: "text-glow-green border-glow-green/30 bg-glow-green/10", dot: "bg-glow-green" },
 };
 
 const fmtTime = (ts: number) =>
@@ -105,7 +106,7 @@ const AuditLog = () => {
           />
         </div>
         <div className="flex items-center gap-1 rounded border border-border/50 bg-card/50 p-1">
-          {(["All", "vault", "incident", "mission"] as const).map((d) => (
+          {(["All", "vault", "incident", "mission", "response"] as const).map((d) => (
             <button
               key={d}
               onClick={() => setFilter(d)}

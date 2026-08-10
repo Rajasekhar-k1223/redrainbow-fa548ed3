@@ -7,7 +7,7 @@
 
 import { bus } from "./eventBus";
 
-export type AuditDomain = "vault" | "incident" | "mission";
+export type AuditDomain = "vault" | "incident" | "mission" | "response";
 
 export interface AuditEntry {
   id: string;
