@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/command";
 import {
   Activity, Boxes, Bug, FileBadge, Radio, AlertOctagon, Fingerprint,
-  Lock, Layers, Network, Terminal, FileText, Plug, Settings as SettingsIcon, Sparkles, Shield, Zap,
+  Lock, Layers, Network, Terminal, FileText, Plug, Settings as SettingsIcon, Sparkles, Shield, Zap, Crosshair,
 } from "lucide-react";
 import { publishToVault } from "@/lib/vaultStore";
 import { createIncident } from "@/lib/incidentStore";
@@ -30,6 +30,7 @@ const routes: Array<{ label: string; path: string; icon: React.ComponentType<{ c
   { label: "Signal Mesh",          path: "/dashboard/signals",         icon: Activity,       group: "Navigate" },
   { label: "Incidents",            path: "/dashboard/incidents",       icon: AlertOctagon,   group: "Navigate" },
   { label: "IOC Ledger",           path: "/dashboard/iocs",            icon: Fingerprint,    group: "Navigate" },
+  { label: "Threat Hunting",       path: "/dashboard/hunt",            icon: Crosshair,      group: "Navigate" },
   { label: "Evidence Vault",       path: "/dashboard/vault",           icon: Lock,           group: "Navigate" },
   { label: "Missions",             path: "/dashboard/missions",        icon: Layers,         group: "Navigate" },
   { label: "Constellation",        path: "/dashboard/constellation",   icon: Network,        group: "Navigate" },

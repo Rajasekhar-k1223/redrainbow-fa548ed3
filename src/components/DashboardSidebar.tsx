@@ -1,4 +1,4 @@
-import { Shield, Activity, Lock, Layers, Terminal, Network, Radio, LogOut, Boxes, Bug, FileBadge, AlertOctagon, Fingerprint, FileText, Plug, Settings as SettingsIcon, Sparkles, ScrollText, GitCompareArrows, Zap } from "lucide-react";
+import { Shield, Activity, Lock, Layers, Terminal, Network, Radio, LogOut, Boxes, Bug, FileBadge, AlertOctagon, Fingerprint, FileText, Plug, Settings as SettingsIcon, Sparkles, ScrollText, GitCompareArrows, Zap, Crosshair } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Link } from "react-router-dom";
 import {
@@ -32,6 +32,7 @@ const sections = [
       { title: "Signal Mesh", url: "/dashboard/signals", icon: Activity },
       { title: "Incidents", url: "/dashboard/incidents", icon: AlertOctagon },
       { title: "IOC Ledger", url: "/dashboard/iocs", icon: Fingerprint },
+      { title: "Threat Hunting", url: "/dashboard/hunt", icon: Crosshair },
       { title: "Evidence Vault", url: "/dashboard/vault", icon: Lock },
     ],
   },
