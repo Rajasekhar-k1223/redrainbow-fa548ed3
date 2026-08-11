@@ -9,7 +9,7 @@ import { bus } from "./eventBus";
 import { logAudit } from "./auditStore";
 import { getPublished, type VaultItem } from "./vaultStore";
 import { getIncidents, getIocs } from "./incidentStore";
-import { getEntries } from "./auditStore";
+import { getAudit } from "./auditStore";
 
 export type HuntCorpus = "vault" | "ioc" | "incident" | "audit";
 
@@ -186,12 +186,10 @@ export const deployRule = (tpl: DetectionRule) => {
     summary: `Detection rule "${tpl.name}" deployed (${tpl.tactic})`,
     meta: { severity: tpl.severity, logic: tpl.logic },
   });
-  bus.emit("notification.raised", {
-    id: `NR-${Date.now()}`,
+  bus.emit("notification.created", {
+    level: tpl.severity === "Critical" || tpl.severity === "High" ? "warn" : "info",
     title: `Detection rule armed — ${tpl.name}`,
-    body: tpl.description,
-    severity: tpl.severity,
-    at: Date.now(),
+    detail: tpl.description,
   });
 };
 
@@ -221,12 +219,18 @@ const scoreOf = (haystack: string, tokens: string[]) => {
 };
 
 const vaultHits = (tokens: string[]): HuntHit[] =>
-  (getPublished() as VaultItem[]).concat(seedVaultShadow).map((i) => {
+  (getPublished() as VaultItem[]).concat(seedVaultShadow).map((i): HuntHit | null => {
     const score = scoreOf(`${i.name} ${i.id} ${i.type} ${i.custody} ${i.source ?? ""}`, tokens);
-    return score
-      ? { id: i.id, corpus: "vault" as HuntCorpus, title: i.name, detail: `${i.type} · ${i.size} · custody ${i.custody}${i.source ? ` · ${i.source}` : ""}`, score, meta: { hash: i.hash } }
-      : null;
-  }).filter((x): x is HuntHit => !!x);
+    if (!score) return null;
+    return {
+      id: i.id,
+      corpus: "vault",
+      title: i.name,
+      detail: `${i.type} · ${i.size} · custody ${i.custody}${i.source ? ` · ${i.source}` : ""}`,
+      score,
+      meta: { hash: i.hash },
+    };
+  }).filter((x): x is HuntHit => x !== null);
 
 // Mirrors the seeded artifacts rendered on the Vault page so hunts cover them too.
 const seedVaultShadow: VaultItem[] = [
@@ -267,7 +271,7 @@ export const runHunt = (query: string, corpora: HuntCorpus[]): HuntResult => {
     }
 
     if (corpora.includes("audit")) {
-      getEntries().forEach((e) => {
+      getAudit().forEach((e) => {
         const score = scoreOf(`${e.action} ${e.subject} ${e.summary} ${e.domain} ${e.actor}`, tokens);
         if (score) hits.push({ id: e.id, corpus: "audit", title: e.summary, detail: `${e.domain} · ${e.action} · ${e.actor}`, at: e.at, score, meta: { digest: e.digest } });
       });
