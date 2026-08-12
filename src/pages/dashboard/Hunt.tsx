@@ -14,6 +14,7 @@ import {
   type HuntCorpus, type HuntResult, type SavedQuery, type DetectionRule,
 } from "@/lib/huntStore";
 import { useCan } from "@/lib/rbac";
+import { techniqueById, tactics } from "@/lib/mitre";
 
 const corpusMeta: Record<HuntCorpus, { label: string; icon: typeof Lock; tone: string }> = {
   vault:    { label: "Vault",     icon: Lock,         tone: "text-secondary border-secondary/30 bg-secondary/10" },
@@ -179,6 +180,16 @@ const Hunt = () => {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm text-foreground truncate">{h.title}</p>
                       <p className="font-mono text-xs text-muted-foreground truncate">{h.id} · {h.detail}</p>
+                      {!!h.attack?.length && (
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                          {h.attack.map((a) => (
+                            <span key={a.technique.id} title={`${a.tactic.id} ${a.tactic.name} — matched on "${a.matchedOn}"`}
+                              className="px-1.5 py-0.5 rounded font-mono text-[10px] border border-glow-amber/30 bg-glow-amber/10 text-glow-amber">
+                              {a.technique.id} · {a.technique.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className={`px-2 py-0.5 rounded font-mono text-[10px] border ${m.tone}`}>{m.label}</span>
@@ -197,6 +208,36 @@ const Hunt = () => {
                   Hypothesis not supported — no matching artifacts.
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* ATT&CK coverage matrix */}
+          <div className="rounded-lg border border-border/50 bg-card/50 overflow-hidden">
+            <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between">
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">MITRE ATT&CK Coverage</span>
+              <span className="font-mono text-[10px] text-muted-foreground">
+                {result?.coverage.length ?? 0}/{tactics.length} tactics touched
+              </span>
+            </div>
+            <div className="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              {tactics.map((tac) => {
+                const cov = result?.coverage.find((c) => c.tacticId === tac.id);
+                const armedTechs = rules.flatMap((r) => r.techniques);
+                const armed = armedTechs.some((id) => techniqueById(id)?.tactic === tac.id);
+                return (
+                  <div key={tac.id}
+                    className={`p-2.5 rounded border transition-colors ${cov ? "border-primary/40 bg-primary/10" : "border-border/40 bg-muted/10"}`}>
+                    <p className={`font-mono text-[10px] ${cov ? "text-primary" : "text-muted-foreground"}`}>{tac.id}</p>
+                    <p className={`text-xs truncate ${cov ? "text-foreground" : "text-muted-foreground"}`}>{tac.name}</p>
+                    <p className="font-mono text-[10px] text-muted-foreground mt-1">
+                      {cov ? `${cov.count} hits · ${cov.techniques.length} tech` : "no hits"}
+                    </p>
+                    {armed && (
+                      <p className="font-mono text-[10px] text-glow-green mt-0.5">rule armed</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -250,6 +291,17 @@ const Hunt = () => {
                       </span>
                     </div>
                     <p className="font-mono text-[10px] text-muted-foreground leading-relaxed">{t.description}</p>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {t.techniques.map((id) => {
+                        const tech = techniqueById(id);
+                        return (
+                          <span key={id} title={tech?.name}
+                            className="px-1.5 py-0.5 rounded font-mono text-[10px] border border-glow-amber/30 bg-glow-amber/10 text-glow-amber">
+                            {id}{tech ? ` · ${tech.name}` : ""}
+                          </span>
+                        );
+                      })}
+                    </div>
                     <pre className="font-mono text-[10px] text-secondary bg-muted/20 border border-border/40 rounded p-2 whitespace-pre-wrap break-words">{t.logic}</pre>
                     <div className="flex items-center gap-2">
                       {armed ? (
