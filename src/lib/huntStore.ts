@@ -10,6 +10,7 @@ import { logAudit } from "./auditStore";
 import { getPublished, type VaultItem } from "./vaultStore";
 import { getIncidents, getIocs } from "./incidentStore";
 import { getAudit } from "./auditStore";
+import { mapText, coverageOf, type MitreMatch } from "./mitre";
 
 export type HuntCorpus = "vault" | "ioc" | "incident" | "audit";
 
@@ -20,6 +21,7 @@ export interface HuntHit {
   detail: string;
   at?: number;
   score: number; // 0-100 relevance
+  attack?: MitreMatch[]; // mapped MITRE ATT&CK techniques
   meta?: Record<string, unknown>;
 }
 
@@ -41,6 +43,8 @@ export interface DetectionRule {
   severity: "Critical" | "High" | "Medium" | "Low";
   logic: string;
   description: string;
+  /** MITRE ATT&CK technique IDs covered by this rule. */
+  techniques: string[];
 }
 
 // ---------- Detection rule templates ---------------------------------------
@@ -53,6 +57,7 @@ export const ruleTemplates: DetectionRule[] = [
     severity: "High",
     description: "Sealed artifacts referencing SMB/WinRM sessions across more than two hosts within one hour.",
     logic: 'corpus:vault AND (name:"lateral" OR name:"smb" OR name:"winrm") AND distinct(host) > 2',
+    techniques: ["T1021", "T1018"],
   },
   {
     id: "DR-002",
@@ -61,6 +66,7 @@ export const ruleTemplates: DetectionRule[] = [
     severity: "Critical",
     description: "IOC ledger indicators tagged c2 with repeating hit counts and malicious verdict.",
     logic: 'corpus:ioc AND tag:c2 AND hits >= 3 AND verdict:"Malicious"',
+    techniques: ["T1105", "T1071", "T1090"],
   },
   {
     id: "DR-003",
@@ -69,6 +75,7 @@ export const ruleTemplates: DetectionRule[] = [
     severity: "Critical",
     description: "Memory dumps or LSASS captures sealed to the vault outside an approved mission window.",
     logic: 'corpus:vault AND (name:"memory_dump" OR name:"lsass") AND NOT source:"mission"',
+    techniques: ["T1003", "T1005"],
   },
   {
     id: "DR-004",
@@ -77,6 +84,7 @@ export const ruleTemplates: DetectionRule[] = [
     severity: "Medium",
     description: "Custody transitions on artifacts that were never reviewed by a second operator.",
     logic: 'corpus:audit AND action:"custody.changed" AND distinct(actor) == 1',
+    techniques: ["T1562", "T1070"],
   },
   {
     id: "DR-005",
@@ -85,6 +93,7 @@ export const ruleTemplates: DetectionRule[] = [
     severity: "High",
     description: "Large binaries or archives sealed within a short window of an open incident.",
     logic: 'corpus:vault AND type:"Binary" AND size > 100MB AND incident.status:"Open"',
+    techniques: ["T1041", "T1005"],
   },
   {
     id: "DR-006",
@@ -93,6 +102,7 @@ export const ruleTemplates: DetectionRule[] = [
     severity: "High",
     description: "Critical incidents remaining Open beyond the response SLA window.",
     logic: 'corpus:incident AND severity:"Critical" AND status:"Open" AND age > 4h',
+    techniques: ["T1486"],
   },
 ];
 
@@ -184,7 +194,7 @@ export const deployRule = (tpl: DetectionRule) => {
   logAudit({
     domain: "response", action: "detection.rule.deployed", subject: tpl.id,
     summary: `Detection rule "${tpl.name}" deployed (${tpl.tactic})`,
-    meta: { severity: tpl.severity, logic: tpl.logic },
+    meta: { severity: tpl.severity, logic: tpl.logic, techniques: tpl.techniques },
   });
   bus.emit("notification.created", {
     level: tpl.severity === "Critical" || tpl.severity === "High" ? "warn" : "info",
@@ -245,6 +255,8 @@ const seedVaultShadow: VaultItem[] = [
 export interface HuntResult {
   hits: HuntHit[];
   byCorpus: Record<HuntCorpus, number>;
+  /** ATT&CK tactic coverage across all hits. */
+  coverage: { tacticId: string; tactic: string; techniques: string[]; count: number }[];
   ranAt: number;
   query: string;
 }
@@ -278,12 +290,21 @@ export const runHunt = (query: string, corpora: HuntCorpus[]): HuntResult => {
     }
   }
 
+  hits.forEach((h) => { h.attack = mapText(`${h.title} ${h.detail}`); });
+
   hits.sort((a, b) => b.score - a.score || (b.at ?? 0) - (a.at ?? 0));
 
   const byCorpus: Record<HuntCorpus, number> = { vault: 0, ioc: 0, incident: 0, audit: 0 };
   hits.forEach((h) => { byCorpus[h.corpus] += 1; });
 
-  const result: HuntResult = { hits, byCorpus, ranAt: Date.now(), query };
+  const coverage = coverageOf(hits.flatMap((h) => h.attack ?? [])).map((c) => ({
+    tacticId: c.tactic.id,
+    tactic: c.tactic.name,
+    techniques: Array.from(c.techniques),
+    count: c.count,
+  }));
+
+  const result: HuntResult = { hits, byCorpus, coverage, ranAt: Date.now(), query };
 
   queries = queries.map((q) => (q.query === query ? { ...q, lastRun: result.ranAt, lastHits: hits.length } : q));
   emitQ();
@@ -299,7 +320,7 @@ export const runHunt = (query: string, corpora: HuntCorpus[]): HuntResult => {
   logAudit({
     domain: "vault", action: "hunt.executed", subject: query.slice(0, 40) || "empty",
     summary: `Hunt executed — ${hits.length} hits across ${corpora.join(", ")}`,
-    meta: { byCorpus },
+    meta: { byCorpus, attack: coverage },
   });
 
   return result;
