@@ -58,6 +58,8 @@ const Hunt = () => {
     if (!c.length) { toast.error("Select at least one corpus"); return; }
     const r = runHunt(q, c);
     setResult(r);
+    setSelectedTactics([]);
+    setSelectedTechniques([]);
     toast.success(`Hunt complete — ${r.hits.length} hits`, { description: q });
   };
 
