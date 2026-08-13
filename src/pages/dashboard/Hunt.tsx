@@ -95,6 +95,38 @@ const Hunt = () => {
     return allCorpora.map((c) => ({ corpus: c, count: b[c] }));
   }, [result]);
 
+  const toggleTactic = (id: string) =>
+    setSelectedTactics((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  const toggleTechnique = (id: string) =>
+    setSelectedTechniques((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  const clearFilters = () => { setSelectedTactics([]); setSelectedTechniques([]); };
+
+  const filteredHits = useMemo(() => {
+    if (!result) return [];
+    if (!selectedTactics.length && !selectedTechniques.length) return result.hits;
+    return result.hits.filter((h) => {
+      const hitTactics = new Set(h.attack?.map((a) => a.tactic.id) ?? []);
+      const hitTechs = new Set(h.attack?.map((a) => a.technique.id) ?? []);
+      const tacticOk = selectedTactics.length === 0 || selectedTactics.some((t) => hitTactics.has(t));
+      const techOk = selectedTechniques.length === 0 || selectedTechniques.some((t) => hitTechs.has(t));
+      return tacticOk && techOk;
+    });
+  }, [result, selectedTactics, selectedTechniques]);
+
+  const filteredCoverage = useMemo(() =>
+    coverageOf(filteredHits.flatMap((h) => h.attack ?? [])).map((c) => ({
+      tacticId: c.tactic.id,
+      tactic: c.tactic.name,
+      techniques: Array.from(c.techniques),
+      count: c.count,
+    })),
+  [filteredHits]);
+
+  const availableTechniques = useMemo(() => {
+    const ids = new Set(result?.hits.flatMap((h) => h.attack?.map((a) => a.technique.id) ?? []) ?? []);
+    return Array.from(ids).map((id) => techniqueById(id)).filter(Boolean);
+  }, [result]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
