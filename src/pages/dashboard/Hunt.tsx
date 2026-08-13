@@ -124,8 +124,11 @@ const Hunt = () => {
 
   const availableTechniques = useMemo(() => {
     const ids = new Set(result?.hits.flatMap((h) => h.attack?.map((a) => a.technique.id) ?? []) ?? []);
-    return Array.from(ids).map((id) => techniqueById(id)).filter(Boolean);
-  }, [result]);
+    return Array.from(ids)
+      .map((id) => techniqueById(id))
+      .filter(Boolean)
+      .filter((t) => selectedTactics.length === 0 || selectedTactics.includes(t!.tactic));
+  }, [result, selectedTactics]);
 
   return (
     <div className="space-y-6">
