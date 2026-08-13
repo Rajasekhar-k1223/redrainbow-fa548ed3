@@ -14,7 +14,7 @@ import {
   type HuntCorpus, type HuntResult, type SavedQuery, type DetectionRule,
 } from "@/lib/huntStore";
 import { useCan } from "@/lib/rbac";
-import { techniqueById, tactics } from "@/lib/mitre";
+import { techniqueById, tactics, coverageOf } from "@/lib/mitre";
 
 const corpusMeta: Record<HuntCorpus, { label: string; icon: typeof Lock; tone: string }> = {
   vault:    { label: "Vault",     icon: Lock,         tone: "text-secondary border-secondary/30 bg-secondary/10" },
