@@ -39,6 +39,8 @@ const Hunt = () => {
   const [result, setResult] = useState<HuntResult | null>(null);
   const [saved, setSaved] = useState<SavedQuery[]>([]);
   const [rules, setRules] = useState<DetectionRule[]>([]);
+  const [selectedTactics, setSelectedTactics] = useState<string[]>([]);
+  const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
   const canRun = useCan("scan.run");
   const canPublish = useCan("report.publish");
 
