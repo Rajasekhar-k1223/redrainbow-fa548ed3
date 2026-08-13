@@ -295,12 +295,12 @@ const Hunt = () => {
             <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between">
               <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">MITRE ATT&CK Coverage</span>
               <span className="font-mono text-[10px] text-muted-foreground">
-                {result?.coverage.length ?? 0}/{tactics.length} tactics touched
+                {filteredCoverage.length}/{tactics.length} tactics touched
               </span>
             </div>
             <div className="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {tactics.map((tac) => {
-                const cov = result?.coverage.find((c) => c.tacticId === tac.id);
+                const cov = filteredCoverage.find((c) => c.tacticId === tac.id);
                 const armedTechs = rules.flatMap((r) => r.techniques);
                 const armed = armedTechs.some((id) => techniqueById(id)?.tactic === tac.id);
                 return (
