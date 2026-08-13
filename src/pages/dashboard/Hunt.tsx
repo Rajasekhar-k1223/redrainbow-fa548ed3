@@ -299,6 +299,7 @@ const Hunt = () => {
               <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">MITRE ATT&CK Coverage</span>
               <span className="font-mono text-[10px] text-muted-foreground">
                 {filteredCoverage.length}/{tactics.length} tactics touched
+                {(selectedTactics.length > 0 || selectedTechniques.length > 0) && " · filtered"}
               </span>
             </div>
             <div className="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
