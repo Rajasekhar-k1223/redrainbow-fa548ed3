@@ -14,7 +14,7 @@ import {
   type HuntCorpus, type HuntResult, type SavedQuery, type DetectionRule,
 } from "@/lib/huntStore";
 import { useCan } from "@/lib/rbac";
-import { techniqueById, tactics } from "@/lib/mitre";
+import { techniqueById, tactics, coverageOf } from "@/lib/mitre";
 
 const corpusMeta: Record<HuntCorpus, { label: string; icon: typeof Lock; tone: string }> = {
   vault:    { label: "Vault",     icon: Lock,         tone: "text-secondary border-secondary/30 bg-secondary/10" },
@@ -39,6 +39,8 @@ const Hunt = () => {
   const [result, setResult] = useState<HuntResult | null>(null);
   const [saved, setSaved] = useState<SavedQuery[]>([]);
   const [rules, setRules] = useState<DetectionRule[]>([]);
+  const [selectedTactics, setSelectedTactics] = useState<string[]>([]);
+  const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
   const canRun = useCan("scan.run");
   const canPublish = useCan("report.publish");
 
@@ -56,6 +58,8 @@ const Hunt = () => {
     if (!c.length) { toast.error("Select at least one corpus"); return; }
     const r = runHunt(q, c);
     setResult(r);
+    setSelectedTactics([]);
+    setSelectedTechniques([]);
     toast.success(`Hunt complete — ${r.hits.length} hits`, { description: q });
   };
 
@@ -90,6 +94,41 @@ const Hunt = () => {
     const b = result?.byCorpus ?? { vault: 0, ioc: 0, incident: 0, audit: 0 };
     return allCorpora.map((c) => ({ corpus: c, count: b[c] }));
   }, [result]);
+
+  const toggleTactic = (id: string) =>
+    setSelectedTactics((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  const toggleTechnique = (id: string) =>
+    setSelectedTechniques((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  const clearFilters = () => { setSelectedTactics([]); setSelectedTechniques([]); };
+
+  const filteredHits = useMemo(() => {
+    if (!result) return [];
+    if (!selectedTactics.length && !selectedTechniques.length) return result.hits;
+    return result.hits.filter((h) => {
+      const hitTactics = new Set(h.attack?.map((a) => a.tactic.id) ?? []);
+      const hitTechs = new Set(h.attack?.map((a) => a.technique.id) ?? []);
+      const tacticOk = selectedTactics.length === 0 || selectedTactics.some((t) => hitTactics.has(t));
+      const techOk = selectedTechniques.length === 0 || selectedTechniques.some((t) => hitTechs.has(t));
+      return tacticOk && techOk;
+    });
+  }, [result, selectedTactics, selectedTechniques]);
+
+  const filteredCoverage = useMemo(() =>
+    coverageOf(filteredHits.flatMap((h) => h.attack ?? [])).map((c) => ({
+      tacticId: c.tactic.id,
+      tactic: c.tactic.name,
+      techniques: Array.from(c.techniques),
+      count: c.count,
+    })),
+  [filteredHits]);
+
+  const availableTechniques = useMemo(() => {
+    const ids = new Set(result?.hits.flatMap((h) => h.attack?.map((a) => a.technique.id) ?? []) ?? []);
+    return Array.from(ids)
+      .map((id) => techniqueById(id))
+      .filter(Boolean)
+      .filter((t) => selectedTactics.length === 0 || selectedTactics.includes(t!.tactic));
+  }, [result, selectedTactics]);
 
   return (
     <div className="space-y-6">
@@ -165,12 +204,50 @@ const Hunt = () => {
               <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Hunt Results</span>
               {result && (
                 <span className="font-mono text-[10px] text-muted-foreground">
-                  {result.hits.length} hits · {new Date(result.ranAt).toLocaleTimeString()}
+                  {filteredHits.length} of {result.hits.length} hits · {new Date(result.ranAt).toLocaleTimeString()}
                 </span>
               )}
             </div>
+            {result && (
+              <div className="px-4 py-3 border-b border-border/50 bg-muted/10 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Tactics</span>
+                  {result.coverage.map((c) => (
+                    <button key={c.tacticId} onClick={() => toggleTactic(c.tacticId)}
+                      className={`px-2 py-1 rounded font-mono text-[10px] border transition-colors ${
+                        selectedTactics.includes(c.tacticId)
+                          ? "border-primary/40 bg-primary/20 text-primary"
+                          : "border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30"
+                      }`}>
+                      {c.tacticId} · {c.tactic}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Techniques</span>
+                  {availableTechniques.map((tech) => (
+                    <button key={tech!.id} onClick={() => toggleTechnique(tech!.id)}
+                      className={`px-2 py-1 rounded font-mono text-[10px] border transition-colors ${
+                        selectedTechniques.includes(tech!.id)
+                          ? "border-glow-amber/40 bg-glow-amber/20 text-glow-amber"
+                          : "border-border/50 text-muted-foreground hover:text-foreground hover:border-glow-amber/30"
+                      }`}>
+                      {tech!.id}
+                    </button>
+                  ))}
+                  {availableTechniques.length === 0 && (
+                    <span className="font-mono text-[10px] text-muted-foreground">No techniques mapped</span>
+                  )}
+                  {(selectedTactics.length > 0 || selectedTechniques.length > 0) && (
+                    <button onClick={clearFilters} className="ml-auto font-mono text-[10px] text-primary hover:underline">
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="divide-y divide-border/30 max-h-[520px] overflow-y-auto">
-              {(result?.hits ?? []).map((h, i) => {
+              {filteredHits.map((h, i) => {
                 const m = corpusMeta[h.corpus];
                 return (
                   <motion.div key={`${h.corpus}-${h.id}-${i}`} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
@@ -203,6 +280,11 @@ const Hunt = () => {
                   Run a hunt to correlate artifacts across the cockpit.
                 </div>
               )}
+              {result && result.hits.length > 0 && filteredHits.length === 0 && (
+                <div className="p-8 text-center font-mono text-xs text-muted-foreground">
+                  ATT&CK filters exclude every hit — adjust or clear filters.
+                </div>
+              )}
               {result && result.hits.length === 0 && (
                 <div className="p-8 text-center font-mono text-xs text-muted-foreground">
                   Hypothesis not supported — no matching artifacts.
@@ -216,12 +298,13 @@ const Hunt = () => {
             <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between">
               <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">MITRE ATT&CK Coverage</span>
               <span className="font-mono text-[10px] text-muted-foreground">
-                {result?.coverage.length ?? 0}/{tactics.length} tactics touched
+                {filteredCoverage.length}/{tactics.length} tactics touched
+                {(selectedTactics.length > 0 || selectedTechniques.length > 0) && " · filtered"}
               </span>
             </div>
             <div className="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {tactics.map((tac) => {
-                const cov = result?.coverage.find((c) => c.tacticId === tac.id);
+                const cov = filteredCoverage.find((c) => c.tacticId === tac.id);
                 const armedTechs = rules.flatMap((r) => r.techniques);
                 const armed = armedTechs.some((id) => techniqueById(id)?.tactic === tac.id);
                 return (
