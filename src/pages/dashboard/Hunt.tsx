@@ -277,6 +277,11 @@ const Hunt = () => {
                   Run a hunt to correlate artifacts across the cockpit.
                 </div>
               )}
+              {result && result.hits.length > 0 && filteredHits.length === 0 && (
+                <div className="p-8 text-center font-mono text-xs text-muted-foreground">
+                  ATT&CK filters exclude every hit — adjust or clear filters.
+                </div>
+              )}
               {result && result.hits.length === 0 && (
                 <div className="p-8 text-center font-mono text-xs text-muted-foreground">
                   Hypothesis not supported — no matching artifacts.
