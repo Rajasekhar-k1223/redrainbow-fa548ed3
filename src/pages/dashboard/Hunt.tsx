@@ -201,12 +201,50 @@ const Hunt = () => {
               <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Hunt Results</span>
               {result && (
                 <span className="font-mono text-[10px] text-muted-foreground">
-                  {result.hits.length} hits · {new Date(result.ranAt).toLocaleTimeString()}
+                  {filteredHits.length} of {result.hits.length} hits · {new Date(result.ranAt).toLocaleTimeString()}
                 </span>
               )}
             </div>
+            {result && (
+              <div className="px-4 py-3 border-b border-border/50 bg-muted/10 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Tactics</span>
+                  {result.coverage.map((c) => (
+                    <button key={c.tacticId} onClick={() => toggleTactic(c.tacticId)}
+                      className={`px-2 py-1 rounded font-mono text-[10px] border transition-colors ${
+                        selectedTactics.includes(c.tacticId)
+                          ? "border-primary/40 bg-primary/20 text-primary"
+                          : "border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30"
+                      }`}>
+                      {c.tacticId} · {c.tactic}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Techniques</span>
+                  {availableTechniques.map((tech) => (
+                    <button key={tech!.id} onClick={() => toggleTechnique(tech!.id)}
+                      className={`px-2 py-1 rounded font-mono text-[10px] border transition-colors ${
+                        selectedTechniques.includes(tech!.id)
+                          ? "border-glow-amber/40 bg-glow-amber/20 text-glow-amber"
+                          : "border-border/50 text-muted-foreground hover:text-foreground hover:border-glow-amber/30"
+                      }`}>
+                      {tech!.id}
+                    </button>
+                  ))}
+                  {availableTechniques.length === 0 && (
+                    <span className="font-mono text-[10px] text-muted-foreground">No techniques mapped</span>
+                  )}
+                  {(selectedTactics.length > 0 || selectedTechniques.length > 0) && (
+                    <button onClick={clearFilters} className="ml-auto font-mono text-[10px] text-primary hover:underline">
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="divide-y divide-border/30 max-h-[520px] overflow-y-auto">
-              {(result?.hits ?? []).map((h, i) => {
+              {filteredHits.map((h, i) => {
                 const m = corpusMeta[h.corpus];
                 return (
                   <motion.div key={`${h.corpus}-${h.id}-${i}`} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
